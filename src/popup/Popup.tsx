@@ -22,13 +22,15 @@ export function Popup() {
 
   useEffect(() => {
     getSettings().then(setSettings)
-    chrome.storage.onChanged.addListener((_changes, area) => {
+    const listener = (_changes: object, area: string) => {
       if (area === 'sync') getSettings().then(setSettings)
-    })
+    }
+    chrome.storage.onChanged.addListener(listener)
     chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => {
       const id = t?.url?.match(/\/channels\/\d+\/(\d+)/)?.[1] ?? null
       setChannelId(id)
     })
+    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
 
   async function handleToggle(key: ElementKey) {
@@ -43,8 +45,7 @@ export function Popup() {
   async function handlePick(key: ElementKey) {
     const [t] = await chrome.tabs.query({ active: true, currentWindow: true })
     if (!t?.id) return
-    try { await chrome.tabs.sendMessage(t.id, { type: 'startPicker', key }) } catch { /* not on Discord */ }
-    window.close()
+    try { await chrome.tabs.sendMessage(t.id, { type: 'startPicker', key }); window.close() } catch { /* not on Discord */ }
   }
 
   async function handleReset(key: ElementKey) {

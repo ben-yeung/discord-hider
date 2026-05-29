@@ -62,9 +62,11 @@ export function KeywordsSettings() {
 
   useEffect(() => {
     getSettings().then(setSettings)
-    chrome.storage.onChanged.addListener((_c, area) => {
+    const listener = (_c: object, area: string) => {
       if (area === 'sync') getSettings().then(setSettings)
-    })
+    }
+    chrome.storage.onChanged.addListener(listener)
+    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
 
   async function handleAddGlobal() {

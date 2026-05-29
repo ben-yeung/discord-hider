@@ -15,9 +15,11 @@ export function Settings() {
 
   useEffect(() => {
     getSettings().then(setSettings)
-    chrome.storage.onChanged.addListener((_changes, area) => {
+    const listener = (_changes: object, area: string) => {
       if (area === 'sync') getSettings().then(setSettings)
-    })
+    }
+    chrome.storage.onChanged.addListener(listener)
+    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
 
   async function handleToggle(key: ElementKey) {
