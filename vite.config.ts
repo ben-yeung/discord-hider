@@ -1,15 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { copyFileSync } from 'fs'
+import { copyFileSync, mkdirSync } from 'fs'
 
 export default defineConfig({
   plugins: [
     react(),
     {
-      name: 'copy-manifest',
+      name: 'copy-extension-assets',
       closeBundle() {
         copyFileSync('manifest.json', 'dist/manifest.json')
+        mkdirSync('dist/icons', { recursive: true })
+        for (const size of [16, 32, 48, 128]) {
+          copyFileSync(`src/assets/icon${size}.png`, `dist/icons/icon${size}.png`)
+        }
       },
     },
   ],
