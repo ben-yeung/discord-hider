@@ -65,15 +65,25 @@ export function Popup() {
     if (!newKwText.trim() || !channelId || !settings) return
     const kw: Keyword = { id: crypto.randomUUID(), text: newKwText.trim(), color: newKwColor, enabled: true }
     const s = await getSettings()
-    if (!s.keywords.channelOverrides[channelId]) {
-      s.keywords.channelOverrides[channelId] = { channelName: null, inheritGlobals: true, keywords: [] }
+
+    const existingConfig = s.keywords.channelOverrides[channelId]
+    const updated: SettingsType = {
+      ...s,
+      keywords: {
+        ...s.keywords,
+        channelOverrides: {
+          ...s.keywords.channelOverrides,
+          [channelId]: {
+            channelName: existingConfig?.channelName ?? null,
+            inheritGlobals: existingConfig?.inheritGlobals ?? true,
+            keywords: [...(existingConfig?.keywords ?? []), kw],
+          },
+        },
+      },
     }
-    s.keywords.channelOverrides[channelId].keywords = [
-      ...s.keywords.channelOverrides[channelId].keywords,
-      kw,
-    ]
-    await saveSettings(s)
-    setSettings(s)
+
+    await saveSettings(updated)
+    setSettings(updated)
     setNewKwText('')
   }
 
