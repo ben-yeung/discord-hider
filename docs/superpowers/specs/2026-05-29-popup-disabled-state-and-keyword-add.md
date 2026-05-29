@@ -64,9 +64,13 @@ useEffect → chrome.tabs.query → setIsDiscordPage, setChannelId
 
 ## CSS
 
+All styles added to `src/popup/popup.css` (settings.css is not imported by the popup):
 - `.popup-disabled-notice` — centered, muted text, padding 24px 16px
-- `.popup-kw-channel-note` — small muted note in the keyword section (no add row)
-- Keyword add row reuses `.kw-add-input`, `.kw-add-btn`, `.kw-color-circle` from `settings.css` (already available via shared imports) — or duplicated in `popup.css` as `.popup-kw-add-input` etc. to keep popup styles self-contained.
+- `.popup-kw-channel-note` — small muted note in keyword section when no channelId
+- `.popup-kw-add-row` — flex row, padding 10px 14px, gap 8px
+- `.popup-kw-add-input` — same pattern as settings `.kw-add-input` (dark bg, border, 30px height)
+- `.popup-kw-add-btn` — same pattern as settings `.kw-add-btn` (blurple, 30px height)
+- `.popup-kw-color-circle` — 14×14 circle (matching existing `.popup-kw-circle` size)
 
 ## Tests
 
