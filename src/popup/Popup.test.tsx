@@ -52,13 +52,6 @@ describe('Popup', () => {
 
 describe('Popup disabled state', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    vi.mocked(chrome.storage.sync.get).mockImplementation((_, cb) => {
-      cb?.({ settings: DEFAULT_SETTINGS })
-      return Promise.resolve({ settings: DEFAULT_SETTINGS })
-    })
-    vi.mocked(chrome.storage.sync.set).mockImplementation((_, cb) => { cb?.(); return Promise.resolve() })
-    vi.mocked(chrome.storage.onChanged.addListener).mockImplementation(() => {})
     vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1, url: 'https://example.com/some-page' }] as chrome.tabs.Tab[])
   })
 

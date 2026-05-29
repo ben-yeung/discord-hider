@@ -73,6 +73,7 @@ export function Popup() {
       kw,
     ]
     await saveSettings(s)
+    setSettings(s)
     setNewKwText('')
   }
 
