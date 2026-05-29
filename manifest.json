@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Discord Hider",
+  "version": "1.0.0",
+  "description": "Toggle visibility of Discord UI elements",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["https://discord.com/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Discord Hider"
+  },
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://discord.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

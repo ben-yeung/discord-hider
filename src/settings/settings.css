@@ -1,0 +1,146 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #1e1f22;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #dbdee1;
+  min-height: 100vh;
+}
+
+.settings-header {
+  background: #2b2d31;
+  padding: 14px 24px;
+  border-bottom: 1px solid #1e1f22;
+}
+
+.settings-header h1 {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.settings-main {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section-label {
+  color: #b5bac1;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.element-rows {
+  background: #2b2d31;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.empty-state {
+  background: #2b2d31;
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-state span { flex: 1; color: #949ba4; font-size: 13px; }
+
+.empty-state button, .add-btn {
+  background: #5865f2;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.add-btn { margin-top: 8px; display: block; }
+
+.channel-row {
+  background: #2b2d31;
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.channel-id { flex: 1; color: #b5bac1; font-size: 12px; font-family: monospace; }
+
+.mini-toggle {
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: 1px solid #4e5058;
+  font-size: 10px;
+  cursor: pointer;
+  color: #b5bac1;
+  background: transparent;
+  font-family: inherit;
+}
+
+.mini-toggle.on { background: #5865f2; border-color: #5865f2; color: #fff; }
+.mini-toggle.custom { border-color: #f0b232; }
+
+.add-channel-form {
+  background: #2b2d31;
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.add-channel-form input {
+  flex: 1;
+  background: #1e1f22;
+  border: 1px solid #4e5058;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #dbdee1;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.add-channel-form button {
+  background: #5865f2;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.add-channel-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.add-channel-form button:last-child {
+  background: transparent;
+  border: 1px solid #4e5058;
+  color: #b5bac1;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: #b5bac1;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+}
+
+.icon-btn:hover { color: #fff; background: #3b3d45; }
