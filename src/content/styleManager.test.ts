@@ -12,6 +12,12 @@ const allHidden: Settings = {
     chatBar: { visible: false, selector: null },
   },
   channelOverrides: {},
+  keywords: {
+    enabled: false,
+    style: 'background',
+    keywords: [],
+    channelOverrides: {},
+  },
 }
 
 describe('buildCSS', () => {

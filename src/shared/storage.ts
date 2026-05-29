@@ -8,6 +8,12 @@ export const DEFAULT_SETTINGS: Settings = {
     chatBar: { visible: true, selector: null },
   },
   channelOverrides: {},
+  keywords: {
+    enabled: false,
+    style: 'background',
+    keywords: [],
+    channelOverrides: {},
+  },
 }
 
 export function getSettings(): Promise<Settings> {
