@@ -119,7 +119,22 @@ describe('Popup keyword add row', () => {
     await user.click(await screen.findByText('Keywords'))
     await user.type(await screen.findByPlaceholderText('Add channel keyword…'), 'critical')
     await user.click(screen.getByText('Add'))
-    expect(chrome.storage.sync.set).toHaveBeenCalled()
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          keywords: expect.objectContaining({
+            channelOverrides: expect.objectContaining({
+              '456': expect.objectContaining({
+                keywords: expect.arrayContaining([
+                  expect.objectContaining({ text: 'critical', enabled: true })
+                ])
+              })
+            })
+          })
+        })
+      }),
+      expect.any(Function)
+    )
   })
 
   it('adds channel keyword on Enter key', async () => {
@@ -127,7 +142,22 @@ describe('Popup keyword add row', () => {
     render(<Popup />)
     await user.click(await screen.findByText('Keywords'))
     await user.type(await screen.findByPlaceholderText('Add channel keyword…'), 'critical{Enter}')
-    expect(chrome.storage.sync.set).toHaveBeenCalled()
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          keywords: expect.objectContaining({
+            channelOverrides: expect.objectContaining({
+              '456': expect.objectContaining({
+                keywords: expect.arrayContaining([
+                  expect.objectContaining({ text: 'critical', enabled: true })
+                ])
+              })
+            })
+          })
+        })
+      }),
+      expect.any(Function)
+    )
   })
 
   it('does not add blank channel keyword', async () => {

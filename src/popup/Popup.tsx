@@ -2,17 +2,16 @@ import { useState, useEffect } from 'react'
 import { Settings, Eye, EyeOff } from 'lucide-react'
 import {
   getSettings,
+  saveSettings,
   setElementVisible,
   setElementSelector,
   updateGlobalKeyword,
   updateChannelKeyword,
   setKeywordMasterEnabled,
-  setChannelKeywordConfig,
-  addChannelKeyword,
 } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
 import { ToggleRow } from '../shared/components/ToggleRow'
-import type { Settings as SettingsType, ElementKey, Keyword, ChannelKeywordConfig } from '../shared/types'
+import type { Settings as SettingsType, ElementKey, Keyword } from '../shared/types'
 import './popup.css'
 
 type Tab = 'elements' | 'keywords'
@@ -27,7 +26,7 @@ export function Popup() {
 
   useEffect(() => {
     getSettings().then(setSettings)
-    const listener = (_changes: object, area: string) => {
+    const listener = (_changes: Record<string, chrome.storage.StorageChange>, area: string) => {
       if (area === 'sync') getSettings().then(setSettings)
     }
     chrome.storage.onChanged.addListener(listener)
@@ -65,11 +64,15 @@ export function Popup() {
   async function handleAddChannelKeyword() {
     if (!newKwText.trim() || !channelId || !settings) return
     const kw: Keyword = { id: crypto.randomUUID(), text: newKwText.trim(), color: newKwColor, enabled: true }
-    if (!settings.keywords.channelOverrides[channelId]) {
-      const cfg: ChannelKeywordConfig = { channelName: null, inheritGlobals: true, keywords: [] }
-      await setChannelKeywordConfig(channelId, cfg)
+    const s = await getSettings()
+    if (!s.keywords.channelOverrides[channelId]) {
+      s.keywords.channelOverrides[channelId] = { channelName: null, inheritGlobals: true, keywords: [] }
     }
-    await addChannelKeyword(channelId, kw)
+    s.keywords.channelOverrides[channelId].keywords = [
+      ...s.keywords.channelOverrides[channelId].keywords,
+      kw,
+    ]
+    await saveSettings(s)
     setNewKwText('')
   }
 
