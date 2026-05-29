@@ -47,3 +47,61 @@ body {
   border-color: #6d6f78;
   color: #dbdee1;
 }
+
+/* Disabled state */
+.popup-disabled-notice {
+  padding: 24px 16px;
+  color: #949ba4;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Channel keyword add row */
+.popup-kw-channel-note {
+  padding: 10px 14px;
+  color: #4e5058;
+  font-size: 12px;
+}
+
+.popup-kw-add-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 8px;
+  border-top: 1px solid #1e1f22;
+}
+
+.popup-kw-color-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.popup-kw-add-input {
+  flex: 1;
+  background: #1e1f22;
+  border: 1px solid #4e5058;
+  border-radius: 4px;
+  padding: 0 8px;
+  height: 26px;
+  color: #dbdee1;
+  font-size: 12px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.popup-kw-add-btn {
+  background: #5865f2;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  padding: 0 10px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
