@@ -1,15 +1,17 @@
 # Discord Hider
 
-A Manifest V3 Chrome extension that toggles visibility of Discord web UI elements.
+A Manifest V3 Chrome extension that toggles visibility of Discord Web UI elements for better visibility.
 
-## Elements
+## Default Targets as of 05/29/2026
 
-| Element | Default selector |
-|---|---|
-| Server List | `nav[aria-label="Servers sidebar"]` |
-| Channel Column | `div[class*="sidebarList"]` |
-| Top Toolbar | `div[class*="toolbar"], div[data-window-chrome="true"]` |
-| Chat Bar | `div[class*="channelTextArea"]` |
+
+| Element        | Default selector                                        |
+| -------------- | ------------------------------------------------------- |
+| Server List    | `nav[aria-label="Servers sidebar"]`                     |
+| Channel Column | `div[class*="sidebarList"]`                             |
+| Top Toolbar    | `div[class*="toolbar"], div[data-window-chrome="true"]` |
+| Chat Bar       | `div[class*="channelTextArea"]`                         |
+
 
 ## Features
 
@@ -18,7 +20,7 @@ A Manifest V3 Chrome extension that toggles visibility of Discord web UI element
 - **Custom selectors** — use the eyedropper to pick a new element if Discord updates its DOM; reset back to default at any time
 - **Sync storage** — settings persist across Chrome profiles via `chrome.storage.sync`
 
-## Install
+## Local Install
 
 1. Clone the repo and `npm install`
 2. `npm run build`
