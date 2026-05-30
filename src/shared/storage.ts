@@ -20,7 +20,7 @@ export function getSettings(): Promise<Settings> {
   return new Promise(resolve => {
     chrome.storage.sync.get('settings', result => {
       const stored = result.settings as Partial<Settings> | undefined
-      if (!stored) { resolve(DEFAULT_SETTINGS); return }
+      if (!stored) { resolve(structuredClone(DEFAULT_SETTINGS)); return }
       resolve({
         ...DEFAULT_SETTINGS,
         ...stored,

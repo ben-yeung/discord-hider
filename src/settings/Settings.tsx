@@ -3,15 +3,19 @@ import { getSettings, setElementVisible, setElementSelector } from '../shared/st
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
 import { ToggleRow } from '../shared/components/ToggleRow'
 import { ChannelOverrides } from './ChannelOverrides'
+import { KeywordsSettings } from './KeywordsSettings'
 import type { Settings as SettingsType, ElementKey } from '../shared/types'
 import './settings.css'
 
+type Tab = 'visibility' | 'keywords'
+
 export function Settings() {
   const [settings, setSettings] = useState<SettingsType | null>(null)
+  const [tab, setTab] = useState<Tab>('visibility')
 
   useEffect(() => {
     getSettings().then(setSettings)
-    const listener = (_changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+    const listener = (_changes: object, area: string) => {
       if (area === 'sync') getSettings().then(setSettings)
     }
     chrome.storage.onChanged.addListener(listener)
@@ -28,13 +32,9 @@ export function Settings() {
   }
 
   async function handlePick(key: ElementKey) {
-    const [tab] = await chrome.tabs.query({ url: 'https://discord.com/*' })
-    if (!tab?.id) return
-    try {
-      await chrome.tabs.sendMessage(tab.id, { type: 'startPicker', key })
-    } catch {
-      // No Discord tab available
-    }
+    const [t] = await chrome.tabs.query({ url: 'https://discord.com/*' })
+    if (!t?.id) return
+    try { await chrome.tabs.sendMessage(t.id, { type: 'startPicker', key }) } catch { /* no Discord tab */ }
   }
 
   async function handleReset(key: ElementKey) {
@@ -51,26 +51,39 @@ export function Settings() {
       <header className="settings-header">
         <h1>Discord Hider — Settings</h1>
       </header>
+      <div className="settings-tabs">
+        <button className={`settings-tab${tab === 'visibility' ? ' active' : ''}`} onClick={() => setTab('visibility')}>
+          Visibility
+        </button>
+        <button className={`settings-tab${tab === 'keywords' ? ' active' : ''}`} onClick={() => setTab('keywords')}>
+          Keywords
+        </button>
+      </div>
       <main className="settings-main">
-        <section>
-          <p className="section-label">Global Visibility</p>
-          <div className="element-rows">
-            {ELEMENT_KEYS.map(key => (
-              <ToggleRow
-                key={key}
-                label={LABELS[key]}
-                visible={settings.elements[key].visible}
-                selector={settings.elements[key].selector}
-                defaultSelector={DEFAULT_SELECTORS[key]}
-                onToggle={() => handleToggle(key)}
-                onPick={() => handlePick(key)}
-                onReset={() => handleReset(key)}
-                showSelector
-              />
-            ))}
-          </div>
-        </section>
-        <ChannelOverrides settings={settings} onSettingsChange={setSettings} />
+        {tab === 'visibility' && (
+          <>
+            <section>
+              <p className="section-label">Global Visibility</p>
+              <div className="element-rows">
+                {ELEMENT_KEYS.map(key => (
+                  <ToggleRow
+                    key={key}
+                    label={LABELS[key]}
+                    visible={settings.elements[key].visible}
+                    selector={settings.elements[key].selector}
+                    defaultSelector={DEFAULT_SELECTORS[key]}
+                    onToggle={() => handleToggle(key)}
+                    onPick={() => handlePick(key)}
+                    onReset={() => handleReset(key)}
+                    showSelector
+                  />
+                ))}
+              </div>
+            </section>
+            <ChannelOverrides settings={settings} onSettingsChange={setSettings} />
+          </>
+        )}
+        {tab === 'keywords' && <KeywordsSettings />}
       </main>
     </div>
   )
