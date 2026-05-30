@@ -163,3 +163,18 @@ body {
   font-family: inherit;
   flex-shrink: 0;
 }
+
+.popup-kw-remove-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: #4e5058;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.popup-kw-remove-btn:hover {
+  color: #ed4245;
+}
