@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Eye, EyeOff } from 'lucide-react'
+import { Settings, Eye, EyeOff, X } from 'lucide-react'
 import {
   getSettings,
   saveSettings,
@@ -8,6 +8,8 @@ import {
   updateGlobalKeyword,
   updateChannelKeyword,
   setKeywordMasterEnabled,
+  removeGlobalKeyword,
+  removeChannelKeyword,
 } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
 import { ToggleRow } from '../shared/components/ToggleRow'
@@ -87,6 +89,32 @@ export function Popup() {
     setNewKwText('')
   }
 
+  async function handleRemoveKeyword(kw: Keyword, isChannel: boolean) {
+    if (!settings) return
+    if (isChannel && channelId) {
+      await removeChannelKeyword(channelId, kw.id)
+      const updated: SettingsType = {
+        ...settings,
+        keywords: {
+          ...settings.keywords,
+          channelOverrides: {
+            ...settings.keywords.channelOverrides,
+            [channelId]: {
+              ...settings.keywords.channelOverrides[channelId],
+              keywords: settings.keywords.channelOverrides[channelId].keywords.filter(k => k.id !== kw.id),
+            },
+          },
+        },
+      }
+      setSettings(updated)
+    } else {
+      await removeGlobalKeyword(kw.id)
+      setSettings(s =>
+        s ? { ...s, keywords: { ...s.keywords, keywords: s.keywords.keywords.filter(k => k.id !== kw.id) } } : s
+      )
+    }
+  }
+
   function openSettings() { chrome.runtime.openOptionsPage(); window.close() }
 
   if (!settings) return null
@@ -159,7 +187,7 @@ export function Popup() {
                   <div key={kw.id} className={`popup-kw-row${kw.enabled ? '' : ' disabled'}`}>
                     <div className="popup-kw-circle" style={{ background: kw.color }} />
                     <span className="popup-kw-text">{kw.text}</span>
-                    {isChannel && <span className="popup-kw-channel-label">#channel</span>}
+                    <span className="popup-kw-channel-label">{isChannel ? '#channel' : 'global'}</span>
                     <button
                       className="icon-btn"
                       title="Toggle keyword visibility"
@@ -170,6 +198,13 @@ export function Popup() {
                       }
                     >
                       {kw.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
+                    </button>
+                    <button
+                      className="popup-kw-remove-btn"
+                      title="Remove keyword"
+                      onClick={() => handleRemoveKeyword(kw, isChannel)}
+                    >
+                      <X size={14} />
                     </button>
                   </div>
                 )

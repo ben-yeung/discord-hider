@@ -162,3 +162,83 @@ describe('Popup keyword add row', () => {
     expect(chrome.storage.sync.set).not.toHaveBeenCalled()
   })
 })
+
+describe('Popup keyword remove', () => {
+  const settingsWithGlobal = {
+    ...DEFAULT_SETTINGS,
+    keywords: {
+      enabled: true,
+      style: 'background' as const,
+      keywords: [{ id: 'g1', text: 'urgent', color: '#ef4444', enabled: true }],
+      channelOverrides: {},
+    },
+  }
+
+  const settingsWithChannel = {
+    ...DEFAULT_SETTINGS,
+    keywords: {
+      enabled: true,
+      style: 'background' as const,
+      keywords: [],
+      channelOverrides: {
+        '456': {
+          channelName: null,
+          inheritGlobals: false,
+          keywords: [{ id: 'c1', text: 'critical', color: '#5865f2', enabled: true }],
+        },
+      },
+    },
+  }
+
+  it('removes a global keyword when X is clicked', async () => {
+    vi.mocked(chrome.storage.sync.get).mockImplementation((_, cb) => {
+      cb?.({ settings: settingsWithGlobal })
+      return Promise.resolve({ settings: settingsWithGlobal })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((_, cb) => { cb?.(); return Promise.resolve() })
+    vi.mocked(chrome.storage.onChanged.addListener).mockImplementation(() => {})
+    vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1, url: 'https://discord.com/' }] as chrome.tabs.Tab[])
+    const user = userEvent.setup()
+    render(<Popup />)
+    await user.click(await screen.findByText('Keywords'))
+    await user.click(await screen.findByTitle('Remove keyword'))
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          keywords: expect.objectContaining({
+            keywords: [],
+          }),
+        }),
+      }),
+      expect.any(Function)
+    )
+  })
+
+  it('removes a channel keyword when X is clicked', async () => {
+    vi.mocked(chrome.storage.sync.get).mockImplementation((_, cb) => {
+      cb?.({ settings: settingsWithChannel })
+      return Promise.resolve({ settings: settingsWithChannel })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((_, cb) => { cb?.(); return Promise.resolve() })
+    vi.mocked(chrome.storage.onChanged.addListener).mockImplementation(() => {})
+    vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1, url: 'https://discord.com/channels/111/456' }] as chrome.tabs.Tab[])
+    const user = userEvent.setup()
+    render(<Popup />)
+    await user.click(await screen.findByText('Keywords'))
+    await user.click(await screen.findByTitle('Remove keyword'))
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          keywords: expect.objectContaining({
+            channelOverrides: expect.objectContaining({
+              '456': expect.objectContaining({
+                keywords: [],
+              }),
+            }),
+          }),
+        }),
+      }),
+      expect.any(Function)
+    )
+  })
+})
