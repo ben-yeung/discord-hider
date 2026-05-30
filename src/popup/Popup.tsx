@@ -93,20 +93,22 @@ export function Popup() {
     if (!settings) return
     if (isChannel && channelId) {
       await removeChannelKeyword(channelId, kw.id)
-      const updated: SettingsType = {
-        ...settings,
-        keywords: {
-          ...settings.keywords,
-          channelOverrides: {
-            ...settings.keywords.channelOverrides,
-            [channelId]: {
-              ...settings.keywords.channelOverrides[channelId],
-              keywords: settings.keywords.channelOverrides[channelId].keywords.filter(k => k.id !== kw.id),
+      setSettings(s => {
+        if (!s) return s
+        return {
+          ...s,
+          keywords: {
+            ...s.keywords,
+            channelOverrides: {
+              ...s.keywords.channelOverrides,
+              [channelId]: {
+                ...s.keywords.channelOverrides[channelId],
+                keywords: s.keywords.channelOverrides[channelId].keywords.filter(k => k.id !== kw.id),
+              },
             },
           },
-        },
-      }
-      setSettings(updated)
+        }
+      })
     } else {
       await removeGlobalKeyword(kw.id)
       setSettings(s =>
