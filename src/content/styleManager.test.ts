@@ -11,6 +11,7 @@ const allHidden: Settings = {
     topToolbar: { visible: false, selector: null },
     chatBar: { visible: false, selector: null },
   },
+  channelNames: {},
   channelOverrides: {},
   keywords: {
     enabled: false,

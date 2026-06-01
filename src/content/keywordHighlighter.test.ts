@@ -81,7 +81,7 @@ describe('computeEffectiveKeywords', () => {
       keywords: {
         ...settingsWithKeywords.keywords,
         channelOverrides: {
-          '789': { channelName: null, inheritGlobals: true, keywords: [kw2] },
+          '789': { inheritGlobals: true, keywords: [kw2] },
         },
       },
     }
@@ -98,7 +98,7 @@ describe('computeEffectiveKeywords', () => {
       keywords: {
         ...settingsWithKeywords.keywords,
         channelOverrides: {
-          '789': { channelName: null, inheritGlobals: true, keywords: [channelKw] },
+          '789': { inheritGlobals: true, keywords: [channelKw] },
         },
       },
     }
@@ -114,7 +114,7 @@ describe('computeEffectiveKeywords', () => {
       keywords: {
         ...settingsWithKeywords.keywords,
         channelOverrides: {
-          '789': { channelName: null, inheritGlobals: false, keywords: [channelKw] },
+          '789': { inheritGlobals: false, keywords: [channelKw] },
         },
       },
     }
