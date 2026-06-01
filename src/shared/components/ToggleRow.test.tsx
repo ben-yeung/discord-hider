@@ -68,4 +68,15 @@ describe('ToggleRow', () => {
     render(<ToggleRow {...base} selector={null} showSelector />)
     expect(screen.getByText(/channelTextArea/)).toBeInTheDocument()
   })
+
+  it('does not render picker or reset buttons when simple is true', () => {
+    render(<ToggleRow {...base} simple />)
+    expect(screen.queryByTitle('Pick element on page')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Reset to default selector')).not.toBeInTheDocument()
+  })
+
+  it('renders extraActions content when provided', () => {
+    render(<ToggleRow {...base} extraActions={<button>chevron</button>} />)
+    expect(screen.getByText('chevron')).toBeInTheDocument()
+  })
 })

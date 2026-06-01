@@ -1,5 +1,7 @@
 export type ElementKey = 'serverList' | 'channelColumn' | 'topToolbar' | 'chatBar'
 
+export type ToolbarItemKey = 'threads' | 'notificationSettings' | 'pinnedMessages' | 'memberList' | 'searchBar'
+
 export interface ElementConfig {
   visible: boolean
   selector: string | null
@@ -33,4 +35,5 @@ export interface Settings {
     [channelId: string]: Partial<Record<ElementKey, boolean>>
   }
   keywords: KeywordSettings
+  topToolbarItems: Record<ToolbarItemKey, boolean>
 }
