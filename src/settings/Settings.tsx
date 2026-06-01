@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { getSettings, setElementVisible, setElementSelector } from '../shared/storage'
+import { getSettings, setElementVisible, setElementSelector, setToolbarItemVisible } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
 import { ToggleRow } from '../shared/components/ToggleRow'
+import { TopToolbarRow } from './TopToolbarRow'
 import { ChannelOverrides } from './ChannelOverrides'
 import { KeywordsSettings } from './KeywordsSettings'
-import type { Settings as SettingsType, ElementKey } from '../shared/types'
+import type { Settings as SettingsType, ElementKey, ToolbarItemKey } from '../shared/types'
 import './settings.css'
 
 type Tab = 'visibility' | 'keywords'
@@ -44,6 +45,15 @@ export function Settings() {
     )
   }
 
+  async function handleItemToggle(key: ToolbarItemKey) {
+    if (!settings) return
+    const next = !settings.topToolbarItems[key]
+    await setToolbarItemVisible(key, next)
+    setSettings(s =>
+      s ? { ...s, topToolbarItems: { ...s.topToolbarItems, [key]: next } } : s
+    )
+  }
+
   if (!settings) return null
 
   return (
@@ -65,19 +75,30 @@ export function Settings() {
             <section>
               <p className="section-label">Global Visibility</p>
               <div className="element-rows">
-                {ELEMENT_KEYS.map(key => (
-                  <ToggleRow
-                    key={key}
-                    label={LABELS[key]}
-                    visible={settings.elements[key].visible}
-                    selector={settings.elements[key].selector}
-                    defaultSelector={DEFAULT_SELECTORS[key]}
-                    onToggle={() => handleToggle(key)}
-                    onPick={() => handlePick(key)}
-                    onReset={() => handleReset(key)}
-                    showSelector
-                  />
-                ))}
+                {ELEMENT_KEYS.map(key =>
+                  key === 'topToolbar' ? (
+                    <TopToolbarRow
+                      key={key}
+                      settings={settings}
+                      onToggle={() => handleToggle(key)}
+                      onPick={() => handlePick(key)}
+                      onReset={() => handleReset(key)}
+                      onItemToggle={handleItemToggle}
+                    />
+                  ) : (
+                    <ToggleRow
+                      key={key}
+                      label={LABELS[key]}
+                      visible={settings.elements[key].visible}
+                      selector={settings.elements[key].selector}
+                      defaultSelector={DEFAULT_SELECTORS[key]}
+                      onToggle={() => handleToggle(key)}
+                      onPick={() => handlePick(key)}
+                      onReset={() => handleReset(key)}
+                      showSelector
+                    />
+                  )
+                )}
               </div>
             </section>
             <ChannelOverrides settings={settings} onSettingsChange={setSettings} />

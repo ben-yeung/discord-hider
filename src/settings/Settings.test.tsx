@@ -83,4 +83,17 @@ describe('Settings', () => {
     await user.click(await screen.findByTitle('Remove override'))
     expect(chrome.storage.sync.set).toHaveBeenCalled()
   })
+
+  it('renders the toolbar expand chevron for Top Toolbar row', async () => {
+    render(<Settings />)
+    expect(await screen.findByTitle('Expand toolbar item visibility')).toBeInTheDocument()
+  })
+
+  it('shows toolbar sub-item labels after expand is clicked', async () => {
+    const user = userEvent.setup()
+    render(<Settings />)
+    await user.click(await screen.findByTitle('Expand toolbar item visibility'))
+    expect(screen.getByText('Search Bar')).toBeInTheDocument()
+    expect(screen.getByText('Threads')).toBeInTheDocument()
+  })
 })
