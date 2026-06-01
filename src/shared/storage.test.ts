@@ -6,6 +6,7 @@ import {
   setChannelOverride,
   removeChannelOverride,
   resetChannelToVisible,
+  setToolbarItemVisible,
   DEFAULT_SETTINGS,
 } from './storage'
 import {
@@ -217,5 +218,47 @@ describe('keyword storage', () => {
     stored['settings'] = { elements: DEFAULT_SETTINGS.elements, channelOverrides: {} }
     const s = await getSettings()
     expect(s.keywords).toEqual(DEFAULT_SETTINGS.keywords)
+  })
+})
+
+describe('topToolbarItems storage', () => {
+  let stored: Record<string, unknown> = {}
+
+  beforeEach(() => {
+    stored = {}
+    vi.clearAllMocks()
+    vi.mocked(chrome.storage.sync.get).mockImplementation((keys, cb) => {
+      const key = typeof keys === 'string' ? keys : (Object.keys(keys as object)[0] ?? '')
+      cb?.({ [key]: stored[key] })
+      return Promise.resolve({ [key]: stored[key] })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((items, cb) => {
+      Object.assign(stored, items)
+      cb?.()
+      return Promise.resolve()
+    })
+  })
+
+  it('getSettings fills in default topToolbarItems when field is absent from stored data', async () => {
+    stored['settings'] = {
+      elements: DEFAULT_SETTINGS.elements,
+      channelOverrides: {},
+      keywords: DEFAULT_SETTINGS.keywords,
+    }
+    const s = await getSettings()
+    expect(s.topToolbarItems).toEqual(DEFAULT_SETTINGS.topToolbarItems)
+  })
+
+  it('setToolbarItemVisible persists the new value', async () => {
+    await setToolbarItemVisible('searchBar', false)
+    const s = await getSettings()
+    expect(s.topToolbarItems.searchBar).toBe(false)
+  })
+
+  it('setToolbarItemVisible for one key does not affect other keys', async () => {
+    await setToolbarItemVisible('threads', true)
+    const s = await getSettings()
+    expect(s.topToolbarItems.memberList).toBe(DEFAULT_SETTINGS.topToolbarItems.memberList)
+    expect(s.topToolbarItems.searchBar).toBe(DEFAULT_SETTINGS.topToolbarItems.searchBar)
   })
 })

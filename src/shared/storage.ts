@@ -1,4 +1,4 @@
-import type { Settings, ElementKey, ElementConfig, Keyword, ChannelKeywordConfig, KeywordSettings } from './types'
+import type { Settings, ElementKey, ElementConfig, Keyword, ChannelKeywordConfig, KeywordSettings, ToolbarItemKey } from './types'
 
 export const DEFAULT_SETTINGS: Settings = {
   elements: {
@@ -14,6 +14,13 @@ export const DEFAULT_SETTINGS: Settings = {
     keywords: [],
     channelOverrides: {},
   },
+  topToolbarItems: {
+    threads: false,
+    notificationSettings: false,
+    pinnedMessages: false,
+    memberList: false,
+    searchBar: true,
+  },
 }
 
 export function getSettings(): Promise<Settings> {
@@ -25,6 +32,7 @@ export function getSettings(): Promise<Settings> {
         ...DEFAULT_SETTINGS,
         ...stored,
         keywords: { ...DEFAULT_SETTINGS.keywords, ...(stored.keywords ?? {}) },
+        topToolbarItems: { ...DEFAULT_SETTINGS.topToolbarItems, ...(stored.topToolbarItems ?? {}) },
       })
     })
   })
@@ -74,6 +82,12 @@ export async function resetChannelToVisible(channelId: string): Promise<void> {
     topToolbar: true,
     chatBar: true,
   }
+  await saveSettings(s)
+}
+
+export async function setToolbarItemVisible(key: ToolbarItemKey, visible: boolean): Promise<void> {
+  const s = await getSettings()
+  s.topToolbarItems[key] = visible
   await saveSettings(s)
 }
 
