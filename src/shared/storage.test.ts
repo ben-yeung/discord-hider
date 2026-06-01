@@ -282,7 +282,7 @@ describe('channelNames storage', () => {
     })
   })
 
-  it('DEFAULT_SETTINGS has channelNames as empty object', async () => {
+  it('returns empty channelNames when nothing is stored', async () => {
     const s = await getSettings()
     expect(s.channelNames).toEqual({})
   })
