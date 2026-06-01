@@ -162,3 +162,95 @@ describe('Popup keyword add row', () => {
     expect(chrome.storage.sync.set).not.toHaveBeenCalled()
   })
 })
+
+describe('Popup reset button', () => {
+  const settingsWithHiddenElement = {
+    ...DEFAULT_SETTINGS,
+    elements: {
+      ...DEFAULT_SETTINGS.elements,
+      serverList: { visible: false, selector: null },
+    },
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(window, 'close').mockImplementation(() => {})
+    vi.mocked(chrome.storage.sync.get).mockImplementation((_, cb) => {
+      cb?.({ settings: settingsWithHiddenElement })
+      return Promise.resolve({ settings: settingsWithHiddenElement })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((_, cb) => {
+      cb?.()
+      return Promise.resolve()
+    })
+    vi.mocked(chrome.storage.onChanged.addListener).mockImplementation(() => {})
+    vi.mocked(chrome.tabs.query).mockResolvedValue([
+      { id: 1, url: 'https://discord.com/channels/111/456' },
+    ] as chrome.tabs.Tab[])
+    vi.mocked(chrome.tabs.sendMessage).mockResolvedValue({
+      channelId: '456',
+      channelName: 'general',
+    })
+  })
+
+  it('shows Reset button with channel name when on a channel and an element is hidden', async () => {
+    render(<Popup />)
+    expect(await screen.findByText('Reset #general')).toBeInTheDocument()
+  })
+
+  it('shows fallback label when channel name is unavailable', async () => {
+    vi.mocked(chrome.tabs.sendMessage).mockRejectedValue(new Error('not available'))
+    render(<Popup />)
+    expect(await screen.findByText('Reset this channel')).toBeInTheDocument()
+  })
+
+  it('does not show Reset button when all elements are visible', async () => {
+    const allVisibleSettings = {
+      ...DEFAULT_SETTINGS,
+      elements: {
+        serverList: { visible: true, selector: null },
+        channelColumn: { visible: true, selector: null },
+        topToolbar: { visible: true, selector: null },
+        chatBar: { visible: true, selector: null },
+      },
+      channelOverrides: {},
+    }
+    vi.mocked(chrome.storage.sync.get).mockImplementation((_, cb) => {
+      cb?.({ settings: allVisibleSettings })
+      return Promise.resolve({ settings: allVisibleSettings })
+    })
+    render(<Popup />)
+    await screen.findByText('Server List')
+    expect(screen.queryByText(/Reset/)).toBeNull()
+  })
+
+  it('does not show Reset button when not on a channel page', async () => {
+    vi.mocked(chrome.tabs.query).mockResolvedValue([
+      { id: 1, url: 'https://discord.com/' },
+    ] as chrome.tabs.Tab[])
+    render(<Popup />)
+    await screen.findByText('Server List')
+    expect(screen.queryByText(/Reset/)).toBeNull()
+  })
+
+  it('clicking Reset button writes all-visible channel override to storage', async () => {
+    const user = userEvent.setup()
+    render(<Popup />)
+    await user.click(await screen.findByText('Reset #general'))
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          channelOverrides: expect.objectContaining({
+            '456': {
+              serverList: true,
+              channelColumn: true,
+              topToolbar: true,
+              chatBar: true,
+            },
+          }),
+        }),
+      }),
+      expect.any(Function),
+    )
+  })
+})
