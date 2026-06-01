@@ -163,3 +163,30 @@ body {
   font-family: inherit;
   flex-shrink: 0;
 }
+
+.popup-reset-section {
+  padding: 10px 14px;
+  background: #2b2d31;
+  border-top: 1px solid #1e1f22;
+}
+
+.popup-reset-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #5865f2;
+  border-radius: 4px;
+  padding: 6px;
+  color: #8891f2;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.popup-reset-btn:hover {
+  border-color: #7983f5;
+  color: #a8b0f8;
+}
