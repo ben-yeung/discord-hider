@@ -7,6 +7,7 @@ import {
   removeChannelOverride,
   resetChannelToVisible,
   setToolbarItemVisible,
+  updateChannelName,
   DEFAULT_SETTINGS,
 } from './storage'
 import {
@@ -175,14 +176,14 @@ describe('keyword storage', () => {
   })
 
   it('setChannelKeywordConfig creates channel entry', async () => {
-    const cfg: ChannelKeywordConfig = { channelName: '# general', inheritGlobals: true, keywords: [kw1] }
+    const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [kw1] }
     await setChannelKeywordConfig('789012', cfg)
     const s = await getSettings()
     expect(s.keywords.channelOverrides['789012']).toEqual(cfg)
   })
 
   it('removeChannelKeywordConfig deletes channel entry', async () => {
-    const cfg: ChannelKeywordConfig = { channelName: '# general', inheritGlobals: true, keywords: [] }
+    const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [] }
     await setChannelKeywordConfig('789012', cfg)
     await removeChannelKeywordConfig('789012')
     const s = await getSettings()
@@ -190,7 +191,7 @@ describe('keyword storage', () => {
   })
 
   it('addChannelKeyword appends to channel keywords', async () => {
-    const cfg: ChannelKeywordConfig = { channelName: null, inheritGlobals: true, keywords: [] }
+    const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [] }
     await setChannelKeywordConfig('789012', cfg)
     await addChannelKeyword('789012', kw1)
     const s = await getSettings()
@@ -198,7 +199,7 @@ describe('keyword storage', () => {
   })
 
   it('updateChannelKeyword patches channel keyword by id', async () => {
-    const cfg: ChannelKeywordConfig = { channelName: null, inheritGlobals: true, keywords: [kw1] }
+    const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [kw1] }
     await setChannelKeywordConfig('789012', cfg)
     await updateChannelKeyword('789012', 'aaa', { color: '#fff' })
     const s = await getSettings()
@@ -206,7 +207,7 @@ describe('keyword storage', () => {
   })
 
   it('removeChannelKeyword removes channel keyword by id', async () => {
-    const cfg: ChannelKeywordConfig = { channelName: null, inheritGlobals: true, keywords: [kw1, kw2] }
+    const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [kw1, kw2] }
     await setChannelKeywordConfig('789012', cfg)
     await removeChannelKeyword('789012', 'aaa')
     const s = await getSettings()
@@ -260,5 +261,54 @@ describe('topToolbarItems storage', () => {
     const s = await getSettings()
     expect(s.topToolbarItems.memberList).toBe(DEFAULT_SETTINGS.topToolbarItems.memberList)
     expect(s.topToolbarItems.searchBar).toBe(DEFAULT_SETTINGS.topToolbarItems.searchBar)
+  })
+})
+
+describe('channelNames storage', () => {
+  let stored: Record<string, unknown> = {}
+
+  beforeEach(() => {
+    stored = {}
+    vi.clearAllMocks()
+    vi.mocked(chrome.storage.sync.get).mockImplementation((keys, cb) => {
+      const key = typeof keys === 'string' ? keys : (Object.keys(keys as object)[0] ?? '')
+      cb?.({ [key]: stored[key] })
+      return Promise.resolve({ [key]: stored[key] })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((items, cb) => {
+      Object.assign(stored, items)
+      cb?.()
+      return Promise.resolve()
+    })
+  })
+
+  it('DEFAULT_SETTINGS has channelNames as empty object', async () => {
+    const s = await getSettings()
+    expect(s.channelNames).toEqual({})
+  })
+
+  it('updateChannelName persists the channel name', async () => {
+    await updateChannelName('789012', '# general')
+    const s = await getSettings()
+    expect(s.channelNames['789012']).toBe('# general')
+  })
+
+  it('updateChannelName overwrites existing name', async () => {
+    await updateChannelName('789012', '# general')
+    await updateChannelName('789012', '# announcements')
+    const s = await getSettings()
+    expect(s.channelNames['789012']).toBe('# announcements')
+  })
+
+  it('getSettings fills in channelNames when absent from stored data', async () => {
+    stored['settings'] = { elements: DEFAULT_SETTINGS.elements, channelOverrides: {} }
+    const s = await getSettings()
+    expect(s.channelNames).toEqual({})
+  })
+
+  it('getSettings merges stored channelNames with defaults', async () => {
+    stored['settings'] = { ...DEFAULT_SETTINGS, channelNames: { '789012': 'general' } }
+    const s = await getSettings()
+    expect(s.channelNames['789012']).toBe('general')
   })
 })

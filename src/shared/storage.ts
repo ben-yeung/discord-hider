@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: Settings = {
     topToolbar: { visible: true, selector: null },
     chatBar: { visible: true, selector: null },
   },
+  channelNames: {},
   channelOverrides: {},
   keywords: {
     enabled: true,
@@ -31,6 +32,7 @@ export function getSettings(): Promise<Settings> {
       resolve({
         ...DEFAULT_SETTINGS,
         ...stored,
+        channelNames: { ...DEFAULT_SETTINGS.channelNames, ...(stored.channelNames ?? {}) },
         keywords: { ...DEFAULT_SETTINGS.keywords, ...(stored.keywords ?? {}) },
         topToolbarItems: { ...DEFAULT_SETTINGS.topToolbarItems, ...(stored.topToolbarItems ?? {}) },
       })
@@ -156,5 +158,11 @@ export async function removeChannelKeyword(channelId: string, id: string): Promi
   const cfg = s.keywords.channelOverrides[channelId]
   if (!cfg) return
   cfg.keywords = cfg.keywords.filter(k => k.id !== id)
+  await saveSettings(s)
+}
+
+export async function updateChannelName(channelId: string, name: string): Promise<void> {
+  const s = await getSettings()
+  s.channelNames[channelId] = name
   await saveSettings(s)
 }
