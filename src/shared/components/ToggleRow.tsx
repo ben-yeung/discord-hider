@@ -1,20 +1,25 @@
+import type { ReactNode } from 'react'
 import { Pipette, RotateCcw } from 'lucide-react'
 import './ToggleRow.css'
 
 interface ToggleRowProps {
   label: string
   visible: boolean
-  selector: string | null
-  defaultSelector: string
   onToggle: () => void
-  onPick: () => void
-  onReset: () => void
+  selector?: string | null
+  defaultSelector?: string
+  onPick?: () => void
+  onReset?: () => void
   showSelector?: boolean
+  simple?: boolean
+  extraActions?: ReactNode
 }
 
 export function ToggleRow({
-  label, visible, selector, defaultSelector,
-  onToggle, onPick, onReset, showSelector = false,
+  label, visible, onToggle,
+  selector = null, defaultSelector = '',
+  onPick, onReset,
+  showSelector = false, simple = false, extraActions,
 }: ToggleRowProps) {
   const isCustom = selector !== null
   const displaySelector = selector ?? defaultSelector
@@ -37,25 +42,30 @@ export function ToggleRow({
         aria-checked={visible}
         aria-label={`Toggle ${label}`}
       />
-      <button
-        type="button"
-        className="icon-btn"
-        onClick={onPick}
-        title="Pick element on page"
-        aria-label={`Pick ${label} element`}
-      >
-        <Pipette size={15} />
-      </button>
-      <button
-        type="button"
-        className={`icon-btn reset${isCustom ? ' active' : ''}`}
-        onClick={onReset}
-        disabled={!isCustom}
-        title="Reset to default selector"
-        aria-label={`Reset ${label} selector`}
-      >
-        <RotateCcw size={14} />
-      </button>
+      {!simple && (
+        <>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={onPick}
+            title="Pick element on page"
+            aria-label={`Pick ${label} element`}
+          >
+            <Pipette size={15} />
+          </button>
+          <button
+            type="button"
+            className={`icon-btn reset${isCustom ? ' active' : ''}`}
+            onClick={onReset}
+            disabled={!isCustom}
+            title="Reset to default selector"
+            aria-label={`Reset ${label} selector`}
+          >
+            <RotateCcw size={14} />
+          </button>
+        </>
+      )}
+      {extraActions}
     </div>
   )
 }
