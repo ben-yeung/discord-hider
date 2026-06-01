@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Settings } from 'lucide-react'
+import { Settings as SettingsIcon } from 'lucide-react'
 import { ToggleRow } from '../shared/components/ToggleRow'
 import { TOOLBAR_ITEM_KEYS, TOOLBAR_ITEM_LABELS, DEFAULT_SELECTORS } from '../content/selectors'
 import type { Settings, ToolbarItemKey } from '../shared/types'
@@ -36,7 +36,7 @@ export function TopToolbarRow({ settings, onToggle, onPick, onReset, onItemToggl
             title="Toolbar item visibility settings"
             aria-label="Toolbar item visibility settings"
           >
-            <Settings size={14} />
+            <SettingsIcon size={14} />
           </button>
         }
       />
