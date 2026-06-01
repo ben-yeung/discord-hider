@@ -21,9 +21,9 @@ describe('TopToolbarRow', () => {
     expect(screen.getByText('Top Toolbar')).toBeInTheDocument()
   })
 
-  it('renders the expand chevron button', () => {
+  it('renders the toolbar settings button', () => {
     render(<TopToolbarRow {...defaultProps} />)
-    expect(screen.getByTitle('Expand toolbar item visibility')).toBeInTheDocument()
+    expect(screen.getByTitle('Toolbar item visibility settings')).toBeInTheDocument()
   })
 
   it('does not show sub-items before expansion', () => {
@@ -35,7 +35,7 @@ describe('TopToolbarRow', () => {
   it('shows all five sub-item labels after expand is clicked', async () => {
     const user = userEvent.setup()
     render(<TopToolbarRow {...defaultProps} />)
-    await user.click(screen.getByTitle('Expand toolbar item visibility'))
+    await user.click(screen.getByTitle('Toolbar item visibility settings'))
     expect(screen.getByText('Search Bar')).toBeInTheDocument()
     expect(screen.getByText('Threads')).toBeInTheDocument()
     expect(screen.getByText('Notification Settings')).toBeInTheDocument()
@@ -46,16 +46,16 @@ describe('TopToolbarRow', () => {
   it('calls onItemToggle with the correct key when a sub-item switch is clicked', async () => {
     const user = userEvent.setup()
     render(<TopToolbarRow {...defaultProps} />)
-    await user.click(screen.getByTitle('Expand toolbar item visibility'))
+    await user.click(screen.getByTitle('Toolbar item visibility settings'))
     await user.click(screen.getByRole('switch', { name: 'Toggle Search Bar' }))
     expect(defaultProps.onItemToggle).toHaveBeenCalledWith('searchBar')
   })
 
-  it('collapses sub-items when chevron is clicked a second time', async () => {
+  it('collapses sub-items when settings button is clicked a second time', async () => {
     const user = userEvent.setup()
     render(<TopToolbarRow {...defaultProps} />)
-    await user.click(screen.getByTitle('Expand toolbar item visibility'))
-    await user.click(screen.getByTitle('Collapse toolbar item visibility'))
+    await user.click(screen.getByTitle('Toolbar item visibility settings'))
+    await user.click(screen.getByTitle('Toolbar item visibility settings'))
     expect(screen.queryByText('Search Bar')).not.toBeInTheDocument()
   })
 

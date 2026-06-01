@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { ToggleRow } from '../shared/components/ToggleRow'
 import { TOOLBAR_ITEM_KEYS, TOOLBAR_ITEM_LABELS, DEFAULT_SELECTORS } from '../content/selectors'
 import type { Settings, ToolbarItemKey } from '../shared/types'
@@ -15,7 +15,6 @@ interface TopToolbarRowProps {
 export function TopToolbarRow({ settings, onToggle, onPick, onReset, onItemToggle }: TopToolbarRowProps) {
   const [expanded, setExpanded] = useState(false)
   const { topToolbar } = settings.elements
-  const chevronTitle = expanded ? 'Collapse toolbar item visibility' : 'Expand toolbar item visibility'
 
   return (
     <div className="toolbar-row-group">
@@ -28,15 +27,16 @@ export function TopToolbarRow({ settings, onToggle, onPick, onReset, onItemToggl
         onPick={onPick}
         onReset={onReset}
         showSelector
-        extraActions={
+        showPicker={false}
+        beforeSwitch={
           <button
             type="button"
             className="icon-btn"
             onClick={() => setExpanded(e => !e)}
-            title={chevronTitle}
-            aria-label={chevronTitle}
+            title="Toolbar item visibility settings"
+            aria-label="Toolbar item visibility settings"
           >
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            <Settings size={14} />
           </button>
         }
       />

@@ -17,17 +17,17 @@ function resolveVisible(key: ElementKey, settings: Settings, channelId: string |
 
 export function buildCSS(settings: Settings, channelId: string | null): string {
   const rules = ELEMENT_KEYS
-    .filter(key => key !== 'topToolbar')
     .filter(key => !resolveVisible(key, settings, channelId))
     .map(key => `${resolveSelector(key, settings)} { display: none !important; }`)
 
   if (!resolveVisible('topToolbar', settings, channelId)) {
-    for (const itemKey of TOOLBAR_ITEM_KEYS) {
-      if (!settings.topToolbarItems[itemKey]) {
-        rules.push(`${TOOLBAR_ITEM_SELECTORS[itemKey]} { display: none !important; }`)
-      }
-    }
     rules.push(':root { --custom-app-top-bar-height: 0px !important; }')
+  }
+
+  for (const itemKey of TOOLBAR_ITEM_KEYS) {
+    if (!settings.topToolbarItems[itemKey]) {
+      rules.push(`${TOOLBAR_ITEM_SELECTORS[itemKey]} { display: none !important; }`)
+    }
   }
 
   return rules.join('\n')

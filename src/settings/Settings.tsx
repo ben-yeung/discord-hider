@@ -96,6 +96,7 @@ export function Settings() {
                       onPick={() => handlePick(key)}
                       onReset={() => handleReset(key)}
                       showSelector
+                      showPicker={false}
                     />
                   )
                 )}

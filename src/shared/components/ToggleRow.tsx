@@ -12,6 +12,8 @@ interface ToggleRowProps {
   onReset?: () => void
   showSelector?: boolean
   simple?: boolean
+  showPicker?: boolean
+  beforeSwitch?: ReactNode
   extraActions?: ReactNode
 }
 
@@ -19,7 +21,7 @@ export function ToggleRow({
   label, visible, onToggle,
   selector = null, defaultSelector = '',
   onPick, onReset,
-  showSelector = false, simple = false, extraActions,
+  showSelector = false, simple = false, showPicker = true, beforeSwitch, extraActions,
 }: ToggleRowProps) {
   const isCustom = selector !== null
   const displaySelector = selector ?? defaultSelector
@@ -34,6 +36,31 @@ export function ToggleRow({
           </code>
         )}
       </div>
+      {beforeSwitch}
+      {!simple && showPicker && (
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={onPick}
+          title="Pick element on page"
+          aria-label={`Pick ${label} element`}
+        >
+          <Pipette size={15} />
+        </button>
+      )}
+      {!simple && (
+        <button
+          type="button"
+          className={`icon-btn reset${isCustom ? ' active' : ''}`}
+          onClick={onReset}
+          disabled={!isCustom}
+          title="Reset to default selector"
+          aria-label={`Reset ${label} selector`}
+        >
+          <RotateCcw size={14} />
+        </button>
+      )}
+      {extraActions}
       <button
         type="button"
         className={`switch ${visible ? 'on' : 'off'}`}
@@ -42,30 +69,6 @@ export function ToggleRow({
         aria-checked={visible}
         aria-label={`Toggle ${label}`}
       />
-      {!simple && (
-        <>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={onPick}
-            title="Pick element on page"
-            aria-label={`Pick ${label} element`}
-          >
-            <Pipette size={15} />
-          </button>
-          <button
-            type="button"
-            className={`icon-btn reset${isCustom ? ' active' : ''}`}
-            onClick={onReset}
-            disabled={!isCustom}
-            title="Reset to default selector"
-            aria-label={`Reset ${label} selector`}
-          >
-            <RotateCcw size={14} />
-          </button>
-        </>
-      )}
-      {extraActions}
     </div>
   )
 }

@@ -69,6 +69,12 @@ describe('ToggleRow', () => {
     expect(screen.getByText(/channelTextArea/)).toBeInTheDocument()
   })
 
+  it('does not render picker button when showPicker is false, but still renders reset', () => {
+    render(<ToggleRow {...base} showPicker={false} />)
+    expect(screen.queryByTitle('Pick element on page')).not.toBeInTheDocument()
+    expect(screen.getByTitle('Reset to default selector')).toBeInTheDocument()
+  })
+
   it('does not render picker or reset buttons when simple is true', () => {
     render(<ToggleRow {...base} simple />)
     expect(screen.queryByTitle('Pick element on page')).not.toBeInTheDocument()

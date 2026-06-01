@@ -15,10 +15,10 @@ export const DEFAULT_SETTINGS: Settings = {
     channelOverrides: {},
   },
   topToolbarItems: {
-    threads: false,
-    notificationSettings: false,
-    pinnedMessages: false,
-    memberList: false,
+    threads: true,
+    notificationSettings: true,
+    pinnedMessages: true,
+    memberList: true,
     searchBar: true,
   },
 }

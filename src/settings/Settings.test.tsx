@@ -84,15 +84,15 @@ describe('Settings', () => {
     expect(chrome.storage.sync.set).toHaveBeenCalled()
   })
 
-  it('renders the toolbar expand chevron for Top Toolbar row', async () => {
+  it('renders the toolbar settings button for Top Toolbar row', async () => {
     render(<Settings />)
-    expect(await screen.findByTitle('Expand toolbar item visibility')).toBeInTheDocument()
+    expect(await screen.findByTitle('Toolbar item visibility settings')).toBeInTheDocument()
   })
 
-  it('shows toolbar sub-item labels after expand is clicked', async () => {
+  it('shows toolbar sub-item labels after settings button is clicked', async () => {
     const user = userEvent.setup()
     render(<Settings />)
-    await user.click(await screen.findByTitle('Expand toolbar item visibility'))
+    await user.click(await screen.findByTitle('Toolbar item visibility settings'))
     expect(screen.getByText('Search Bar')).toBeInTheDocument()
     expect(screen.getByText('Threads')).toBeInTheDocument()
   })
