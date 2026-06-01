@@ -18,6 +18,13 @@ const allHidden: Settings = {
     keywords: [],
     channelOverrides: {},
   },
+  topToolbarItems: {
+    threads: false,
+    notificationSettings: false,
+    pinnedMessages: false,
+    memberList: false,
+    searchBar: false,
+  },
 }
 
 describe('buildCSS', () => {
@@ -79,5 +86,29 @@ describe('buildCSS', () => {
     }
     const css = buildCSS(settings, '789012')
     expect(css).toBe('')
+  })
+
+  it('hides each toolbar item individually when topToolbar is hidden and all items are false', () => {
+    const css = buildCSS(allHidden, null)
+    expect(css).toContain('[aria-label="Threads"] { display: none !important; }')
+    expect(css).toContain('[aria-label="Notification Settings"] { display: none !important; }')
+    expect(css).toContain('[aria-label="Pinned Messages"] { display: none !important; }')
+    expect(css).toContain('[aria-label="Show Member List"] { display: none !important; }')
+    expect(css).toContain('div[data-window-chrome="true"] div[class*="search__"] { display: none !important; }')
+  })
+
+  it('does not hide a surviving toolbar item when topToolbar is hidden', () => {
+    const settings: Settings = {
+      ...allHidden,
+      topToolbarItems: { ...allHidden.topToolbarItems, searchBar: true },
+    }
+    const css = buildCSS(settings, null)
+    expect(css).not.toContain('search__')
+    expect(css).toContain('[aria-label="Threads"] { display: none !important; }')
+  })
+
+  it('does not emit display:none for the toolbar container element when topToolbar is hidden', () => {
+    const css = buildCSS(allHidden, null)
+    expect(css).not.toContain('div[data-window-chrome="true"] { display: none !important; }')
   })
 })
