@@ -7,6 +7,7 @@ import type { Settings } from '../shared/types'
 
 const withKeywords: Settings = {
   ...DEFAULT_SETTINGS,
+  channelNames: { '789012': '# sprint-planning' },
   keywords: {
     enabled: true,
     style: 'background',
@@ -16,7 +17,6 @@ const withKeywords: Settings = {
     ],
     channelOverrides: {
       '789012': {
-        channelName: '# sprint-planning',
         inheritGlobals: true,
         keywords: [{ id: 'ccc', text: 'sprint', color: '#a78bfa', enabled: true }],
       },

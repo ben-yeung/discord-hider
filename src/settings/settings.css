@@ -297,9 +297,17 @@ body {
   justify-content: space-between;
 }
 
-.ch-kw-name-wrap { display: flex; align-items: center; gap: 8px; }
+.ch-kw-name-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
-.ch-kw-name { color: #dbdee1; font-size: 14px; font-weight: 600; }
+.ch-kw-name {
+  color: #dbdee1;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
 
 .ch-kw-id {
   color: #4e5058;

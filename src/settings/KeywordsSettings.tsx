@@ -12,6 +12,7 @@ import {
   addChannelKeyword,
   updateChannelKeyword,
   removeChannelKeyword,
+  updateChannelName,
 } from '../shared/storage'
 import type { Settings, Keyword, ChannelKeywordConfig } from '../shared/types'
 
@@ -91,8 +92,9 @@ export function KeywordsSettings() {
     } catch { /* no Discord tab */ }
 
     if (channelId) {
-      const cfg: ChannelKeywordConfig = { channelName, inheritGlobals: true, keywords: [] }
+      const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [] }
       await setChannelKeywordConfig(channelId, cfg)
+      if (channelName) await updateChannelName(channelId, channelName)
     } else {
       setAddingChannel(true)
     }
@@ -101,7 +103,7 @@ export function KeywordsSettings() {
   async function handleUrlFallbackConfirm() {
     const channelId = extractChannelId(channelUrlInput)
     if (!channelId) return
-    const cfg: ChannelKeywordConfig = { channelName: null, inheritGlobals: true, keywords: [] }
+    const cfg: ChannelKeywordConfig = { inheritGlobals: true, keywords: [] }
     await setChannelKeywordConfig(channelId, cfg)
     setAddingChannel(false)
     setChannelUrlInput('')
@@ -197,8 +199,10 @@ export function KeywordsSettings() {
             <div className="ch-kw-header">
               <div className="ch-kw-name-row">
                 <div className="ch-kw-name-wrap">
-                  <span className="ch-kw-name">{cfg.channelName ?? `#${channelId}`}</span>
-                  {cfg.channelName && <span className="ch-kw-id">{channelId}</span>}
+                  <span className="ch-kw-name">
+                    {settings.channelNames[channelId] ?? channelId}
+                  </span>
+                  <span className="ch-kw-id">{channelId}</span>
                 </div>
                 <button
                   className="icon-btn"
