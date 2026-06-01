@@ -12,6 +12,7 @@ import {
   removeGlobalKeyword,
   removeChannelKeyword,
   resetChannelToVisible,
+  updateChannelName,
 } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
 import { ToggleRow } from '../shared/components/ToggleRow'
@@ -43,7 +44,14 @@ export function Popup() {
       if (t?.id && id) {
         try {
           const info = await chrome.tabs.sendMessage(t.id, { type: 'getChannelInfo' })
-          setChannelName(info?.channelName ?? null)
+          const name = info?.channelName ?? null
+          setChannelName(name)
+          if (name) {
+            const s = await getSettings()
+            if (!s.channelNames[id]) {
+              await updateChannelName(id, name)
+            }
+          }
         } catch { /* not on Discord or content script not ready */ }
       }
     })
@@ -58,6 +66,7 @@ export function Popup() {
     const next = !effective
     if (channelId) {
       await setChannelOverride(channelId, key, next)
+      if (channelName) await updateChannelName(channelId, channelName)
       setSettings(s => s ? {
         ...s,
         channelOverrides: { ...s.channelOverrides, [channelId]: { ...s.channelOverrides[channelId], [key]: next } },
@@ -91,12 +100,12 @@ export function Popup() {
     const existingConfig = s.keywords.channelOverrides[channelId]
     const updated: SettingsType = {
       ...s,
+      channelNames: channelName ? { ...s.channelNames, [channelId]: channelName } : s.channelNames,
       keywords: {
         ...s.keywords,
         channelOverrides: {
           ...s.keywords.channelOverrides,
           [channelId]: {
-            channelName: existingConfig?.channelName ?? null,
             inheritGlobals: existingConfig?.inheritGlobals ?? true,
             keywords: [...(existingConfig?.keywords ?? []), kw],
           },
@@ -113,6 +122,7 @@ export function Popup() {
     if (!settings) return
     if (isChannel && channelId) {
       await removeChannelKeyword(channelId, kw.id)
+      if (channelName) await updateChannelName(channelId, channelName)
       setSettings(s => {
         if (!s) return s
         return {
@@ -134,6 +144,15 @@ export function Popup() {
       setSettings(s =>
         s ? { ...s, keywords: { ...s.keywords, keywords: s.keywords.keywords.filter(k => k.id !== kw.id) } } : s
       )
+    }
+  }
+
+  async function handleKeywordToggle(kw: Keyword, isChannel: boolean) {
+    if (isChannel && channelId) {
+      await updateChannelKeyword(channelId, kw.id, { enabled: !kw.enabled })
+      if (channelName) await updateChannelName(channelId, channelName)
+    } else {
+      await updateGlobalKeyword(kw.id, { enabled: !kw.enabled })
     }
   }
 
@@ -217,11 +236,7 @@ export function Popup() {
                     <button
                       className="icon-btn"
                       title="Toggle keyword visibility"
-                      onClick={() =>
-                        isChannel && channelId
-                          ? updateChannelKeyword(channelId, kw.id, { enabled: !kw.enabled })
-                          : updateGlobalKeyword(kw.id, { enabled: !kw.enabled })
-                      }
+                      onClick={() => handleKeywordToggle(kw, isChannel)}
                     >
                       {kw.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
                     </button>

@@ -182,7 +182,6 @@ describe('Popup keyword remove', () => {
       keywords: [],
       channelOverrides: {
         '456': {
-          channelName: null,
           inheritGlobals: false,
           keywords: [{ id: 'c1', text: 'critical', color: '#5865f2', enabled: true }],
         },
