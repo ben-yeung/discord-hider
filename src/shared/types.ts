@@ -15,7 +15,6 @@ export interface Keyword {
 }
 
 export interface ChannelKeywordConfig {
-  channelName: string | null   // from document.title at save time
   inheritGlobals: boolean      // if true, global + channel keywords both apply
   keywords: Keyword[]
 }
@@ -31,6 +30,7 @@ export interface KeywordSettings {
 
 export interface Settings {
   elements: Record<ElementKey, ElementConfig>
+  channelNames: { [channelId: string]: string }
   channelOverrides: {
     [channelId: string]: Partial<Record<ElementKey, boolean>>
   }
