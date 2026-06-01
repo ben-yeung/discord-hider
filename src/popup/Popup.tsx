@@ -157,7 +157,16 @@ export function Popup() {
             <div className="popup-reset-section">
               <button
                 className="popup-reset-btn"
-                onClick={() => resetChannelToVisible(channelId)}
+                onClick={async () => {
+                  await resetChannelToVisible(channelId)
+                  setSettings(s => s ? {
+                    ...s,
+                    channelOverrides: {
+                      ...s.channelOverrides,
+                      [channelId]: { serverList: true, channelColumn: true, topToolbar: true, chatBar: true },
+                    },
+                  } : s)
+                }}
               >
                 {channelName ? `Reset #${channelName}` : 'Reset this channel'}
               </button>
