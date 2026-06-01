@@ -1,5 +1,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body { overflow: hidden; }
+
 body {
   background: #1e1f22;
   font-family: system-ui, -apple-system, sans-serif;
@@ -180,9 +182,8 @@ body {
 }
 
 .popup-reset-section {
-  padding: 10px 14px;
+  padding: 6px 14px;
   background: #2b2d31;
-  border-top: 1px solid #1e1f22;
 }
 
 .popup-reset-btn {

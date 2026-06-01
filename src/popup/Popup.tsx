@@ -8,6 +8,7 @@ import {
   updateGlobalKeyword,
   updateChannelKeyword,
   setKeywordMasterEnabled,
+  setChannelOverride,
   removeGlobalKeyword,
   removeChannelKeyword,
   resetChannelToVisible,
@@ -51,11 +52,22 @@ export function Popup() {
 
   async function handleToggle(key: ElementKey) {
     if (!settings) return
-    const next = !settings.elements[key].visible
-    await setElementVisible(key, next)
-    setSettings(s =>
-      s ? { ...s, elements: { ...s.elements, [key]: { ...s.elements[key], visible: next } } } : s
-    )
+    const effective = channelId
+      ? (settings.channelOverrides[channelId]?.[key] ?? settings.elements[key].visible)
+      : settings.elements[key].visible
+    const next = !effective
+    if (channelId) {
+      await setChannelOverride(channelId, key, next)
+      setSettings(s => s ? {
+        ...s,
+        channelOverrides: { ...s.channelOverrides, [channelId]: { ...s.channelOverrides[channelId], [key]: next } },
+      } : s)
+    } else {
+      await setElementVisible(key, next)
+      setSettings(s =>
+        s ? { ...s, elements: { ...s.elements, [key]: { ...s.elements[key], visible: next } } } : s
+      )
+    }
   }
 
   async function handlePick(key: ElementKey) {
@@ -172,7 +184,7 @@ export function Popup() {
                 <ToggleRow
                   key={key}
                   label={LABELS[key]}
-                  visible={settings.elements[key].visible}
+                  visible={channelId ? (settings.channelOverrides[channelId]?.[key] ?? settings.elements[key].visible) : settings.elements[key].visible}
                   selector={settings.elements[key].selector}
                   defaultSelector={DEFAULT_SELECTORS[key]}
                   onToggle={() => handleToggle(key)}
@@ -180,26 +192,6 @@ export function Popup() {
                   onReset={() => handleReset(key)}
                 />
               ))}
-            </div>
-          )}
-
-          {tab === 'elements' && anyHidden && channelId && (
-            <div className="popup-reset-section">
-              <button
-                className="popup-reset-btn"
-                onClick={async () => {
-                  await resetChannelToVisible(channelId)
-                  setSettings(s => s ? {
-                    ...s,
-                    channelOverrides: {
-                      ...s.channelOverrides,
-                      [channelId]: { serverList: true, channelColumn: true, topToolbar: true, chatBar: true },
-                    },
-                  } : s)
-                }}
-              >
-                {channelName ? `Reset #${channelName}` : 'Reset this channel'}
-              </button>
             </div>
           )}
 
@@ -283,6 +275,26 @@ export function Popup() {
           Open Settings
         </button>
       </footer>
+
+      {tab === 'elements' && anyHidden && channelId && (
+        <div className="popup-reset-section">
+          <button
+            className="popup-reset-btn"
+            onClick={async () => {
+              await resetChannelToVisible(channelId)
+              setSettings(s => s ? {
+                ...s,
+                channelOverrides: {
+                  ...s.channelOverrides,
+                  [channelId]: { serverList: true, channelColumn: true, topToolbar: true, chatBar: true },
+                },
+              } : s)
+            }}
+          >
+            {channelName ? `Reset #${channelName}` : 'Reset this channel'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -135,8 +135,16 @@ export function highlightNodes(nodes: NodeList, settings: Settings, channelId: s
 }
 
 export function getChannelName(): string | null {
-  const match = document.title.match(/^(#[^—–]+?)(?:\s+[—–]|$)/)
-  return match ? match[1].trim() : null
+  const h1 = document.querySelector('[class*="titleWrapper"] h1')
+  if (!h1) return null
+  const text = Array.from(h1.childNodes)
+    .filter(n => n.nodeType === Node.TEXT_NODE)
+    .map(n => n.textContent ?? '')
+    .join('')
+    .trim()
+  if (!text) return null
+  const sep = text.lastIndexOf('│')
+  return sep >= 0 ? text.slice(sep + 1).trim() : text
 }
 
 export function startKeywordObserver(

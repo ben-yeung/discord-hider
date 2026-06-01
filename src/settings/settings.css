@@ -90,7 +90,7 @@ body {
 }
 
 .mini-toggle.on { background: #5865f2; border-color: #5865f2; color: #fff; }
-.mini-toggle.custom { border-color: #f0b232; }
+.mini-toggle.on.custom { border-color: #f0b232; }
 
 .add-channel-form {
   background: #2b2d31;

@@ -193,18 +193,20 @@ describe('applyKeywords', () => {
 })
 
 describe('getChannelName', () => {
-  it('returns null when title has no # prefix', () => {
-    document.title = 'Discord'
+  afterEach(() => { document.body.innerHTML = '' })
+
+  it('returns null when titleWrapper element is absent', () => {
+    document.body.innerHTML = ''
     expect(getChannelName()).toBeNull()
   })
 
-  it('extracts channel name from Discord-style title', () => {
-    document.title = '# general — Text Channels — My Server'
-    expect(getChannelName()).toBe('# general')
+  it('extracts name after │ separator when channel has emoji prefix', () => {
+    document.body.innerHTML = `<div class="titleWrapper__abc"><h1><span class="hiddenVisually_xyz">server:</span> 💰│flips-important</h1></div>`
+    expect(getChannelName()).toBe('flips-important')
   })
 
-  it('handles title with just the channel name', () => {
-    document.title = '# sprint-planning'
-    expect(getChannelName()).toBe('# sprint-planning')
+  it('returns full trimmed text when no │ separator', () => {
+    document.body.innerHTML = `<div class="titleWrapper__abc"><h1><span class="hiddenVisually_xyz">server:</span> general</h1></div>`
+    expect(getChannelName()).toBe('general')
   })
 })
