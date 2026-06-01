@@ -76,7 +76,16 @@ body {
   margin-bottom: 4px;
 }
 
-.channel-id { flex: 1; color: #b5bac1; font-size: 12px; font-family: monospace; }
+.channel-id {
+  flex: 1;
+  min-width: 0;
+  color: #b5bac1;
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: default;
+}
 
 .mini-toggle {
   padding: 3px 6px;

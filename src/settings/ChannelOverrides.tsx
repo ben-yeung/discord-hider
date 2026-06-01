@@ -75,7 +75,9 @@ export function ChannelOverrides({ settings, onSettingsChange }: Props) {
 
       {overrides.map(([id, override]) => (
         <div key={id} className="channel-row">
-          <span className="channel-id">{id}</span>
+          <span className="channel-id" title={id}>
+            {settings.channelNames[id] ?? id}
+          </span>
           {ELEMENT_KEYS.map(key => {
             const val = override[key]
             const effective = val ?? settings.elements[key].visible
