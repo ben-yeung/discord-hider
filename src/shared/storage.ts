@@ -66,6 +66,17 @@ export async function removeChannelOverride(channelId: string): Promise<void> {
   await saveSettings(s)
 }
 
+export async function resetChannelToVisible(channelId: string): Promise<void> {
+  const s = await getSettings()
+  s.channelOverrides[channelId] = {
+    serverList: true,
+    channelColumn: true,
+    topToolbar: true,
+    chatBar: true,
+  }
+  await saveSettings(s)
+}
+
 async function patchKeywords(patch: Partial<KeywordSettings>): Promise<void> {
   const s = await getSettings()
   s.keywords = { ...s.keywords, ...patch }

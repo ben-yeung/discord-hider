@@ -10,6 +10,7 @@ import {
   setKeywordMasterEnabled,
   removeGlobalKeyword,
   removeChannelKeyword,
+  resetChannelToVisible,
 } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
 import { ToggleRow } from '../shared/components/ToggleRow'
@@ -22,6 +23,7 @@ export function Popup() {
   const [settings, setSettings] = useState<SettingsType | null>(null)
   const [tab, setTab] = useState<Tab>('elements')
   const [channelId, setChannelId] = useState<string | null>(null)
+  const [channelName, setChannelName] = useState<string | null>(null)
   const [isDiscordPage, setIsDiscordPage] = useState(false)
   const [newKwText, setNewKwText] = useState('')
   const [newKwColor, setNewKwColor] = useState('#5865f2')
@@ -32,11 +34,17 @@ export function Popup() {
       if (area === 'sync') getSettings().then(setSettings)
     }
     chrome.storage.onChanged.addListener(listener)
-    chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(async ([t]) => {
       const url = t?.url ?? ''
       setIsDiscordPage(url.startsWith('https://discord.com/'))
       const id = url.match(/\/channels\/\d+\/(\d+)/)?.[1] ?? null
       setChannelId(id)
+      if (t?.id && id) {
+        try {
+          const info = await chrome.tabs.sendMessage(t.id, { type: 'getChannelInfo' })
+          setChannelName(info?.channelName ?? null)
+        } catch { /* not on Discord or content script not ready */ }
+      }
     })
     return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
@@ -135,6 +143,10 @@ export function Popup() {
       : channelCfg.keywords
     : settings.keywords.keywords
 
+  const anyHidden = channelId !== null && ELEMENT_KEYS.some(
+    key => !(settings.channelOverrides[channelId]?.[key] ?? settings.elements[key].visible)
+  )
+
   return (
     <div className="popup">
       <header className="popup-header">
@@ -168,6 +180,26 @@ export function Popup() {
                   onReset={() => handleReset(key)}
                 />
               ))}
+            </div>
+          )}
+
+          {tab === 'elements' && anyHidden && channelId && (
+            <div className="popup-reset-section">
+              <button
+                className="popup-reset-btn"
+                onClick={async () => {
+                  await resetChannelToVisible(channelId)
+                  setSettings(s => s ? {
+                    ...s,
+                    channelOverrides: {
+                      ...s.channelOverrides,
+                      [channelId]: { serverList: true, channelColumn: true, topToolbar: true, chatBar: true },
+                    },
+                  } : s)
+                }}
+              >
+                {channelName ? `Reset #${channelName}` : 'Reset this channel'}
+              </button>
             </div>
           )}
 

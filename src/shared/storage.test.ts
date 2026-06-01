@@ -5,6 +5,7 @@ import {
   setElementSelector,
   setChannelOverride,
   removeChannelOverride,
+  resetChannelToVisible,
   DEFAULT_SETTINGS,
 } from './storage'
 import {
@@ -81,6 +82,30 @@ describe('storage', () => {
     await removeChannelOverride('789012')
     const s = await getSettings()
     expect(s.channelOverrides['789012']).toBeUndefined()
+  })
+
+  it('resetChannelToVisible creates an all-visible override for a new channel', async () => {
+    await resetChannelToVisible('789012')
+    const s = await getSettings()
+    expect(s.channelOverrides['789012']).toEqual({
+      serverList: true,
+      channelColumn: true,
+      topToolbar: true,
+      chatBar: true,
+    })
+  })
+
+  it('resetChannelToVisible overwrites an existing partial override', async () => {
+    await setChannelOverride('789012', 'chatBar', false)
+    await setChannelOverride('789012', 'serverList', false)
+    await resetChannelToVisible('789012')
+    const s = await getSettings()
+    expect(s.channelOverrides['789012']).toEqual({
+      serverList: true,
+      channelColumn: true,
+      topToolbar: true,
+      chatBar: true,
+    })
   })
 })
 
