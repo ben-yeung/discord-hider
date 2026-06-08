@@ -12,12 +12,12 @@ keywords in chat. All settings sync across your browser profile via
 Toggle any of the four main layout regions on or off with one click from the
 popup:
 
-| Element        | Default selector                       |
-| -------------- | -------------------------------------- |
-| Server List    | `nav[aria-label="Servers sidebar"]`    |
-| Channel Column | `div[class*="sidebarList"]`            |
-| Top Toolbar    | `div[data-window-chrome="true"]`       |
-| Chat Bar       | `div[class*="channelTextArea"]`        |
+| Element        | Default selector                    |
+| -------------- | ----------------------------------- |
+| Server List    | `nav[aria-label="Servers sidebar"]` |
+| Channel Column | `div[class*="sidebarList"]`         |
+| Top Toolbar    | `div[data-window-chrome="true"]`    |
+| Chat Bar       | `div[class*="channelTextArea"]`     |
 
 ### Toolbar item visibility
 
@@ -78,10 +78,6 @@ npm run build       # full build (popup + settings + content script)
 npm test            # run all tests
 npx tsc --noEmit    # type-check (tests do not type-check on their own)
 ```
-
-CI runs the tests, type-check, and build on every PR and push to `main`.
-Pushing a `vX.Y.Z` tag builds and publishes a release zip automatically — see
-[`docs/superpowers/specs/2026-06-08-github-actions-release-design.md`](docs/superpowers/specs/2026-06-08-github-actions-release-design.md).
 
 ## Stack
 
