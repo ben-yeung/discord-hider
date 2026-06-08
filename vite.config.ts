@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { copyFileSync, mkdirSync } from 'fs'
@@ -30,5 +31,6 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: ['src/test-setup.ts'],
+    exclude: [...configDefaults.exclude, '.claude/**'],
   },
 })
