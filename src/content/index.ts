@@ -2,7 +2,8 @@ import { getSettings } from '../shared/storage'
 import { applySettings } from './styleManager'
 import { startPicker } from './picker'
 import { applyKeywords, highlightNodes, getChannelName, startKeywordObserver } from './keywordHighlighter'
-import { onNavigate, processAddedNodes, playSound, toggleArmMute, getSoundState, syncHeaderButton, isChannelEnabled } from './soundAlerts'
+import { onNavigate, processAddedNodes, toggleArmMute, getSoundState, syncHeaderButton, isChannelEnabled } from './soundAlerts'
+import { playSound } from '../shared/soundPlayer'
 import type { ElementKey } from '../shared/types'
 
 function getChannelId(): string | null {

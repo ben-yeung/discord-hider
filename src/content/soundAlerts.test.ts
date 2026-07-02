@@ -174,13 +174,17 @@ describe('arm / mute state machine', () => {
 describe('syncHeaderButton', () => {
   beforeEach(() => { __resetSoundState(); document.body.innerHTML = '' })
 
-  function buildHeader(): void {
+  function buildHeader(): HTMLDivElement {
     const chrome = document.createElement('div')
     chrome.setAttribute('data-window-chrome', 'true')
     const toolbar = document.createElement('div')
     toolbar.className = 'toolbar__abc'
+    const search = document.createElement('div')
+    search.className = 'search__xyz'
+    toolbar.appendChild(search)
     chrome.appendChild(toolbar)
     document.body.appendChild(chrome)
+    return search
   }
 
   it('injects the button once when the channel is enabled', () => {
@@ -190,6 +194,13 @@ describe('syncHeaderButton', () => {
     expect(document.querySelectorAll('#dh-sound-unlock')).toHaveLength(1)
   })
 
+  it('places the button immediately to the left of the search bar', () => {
+    const search = buildHeader()
+    syncHeaderButton(true)
+    const btn = document.getElementById('dh-sound-unlock')
+    expect(search.previousElementSibling).toBe(btn)
+  })
+
   it('removes the button when the channel is disabled', () => {
     buildHeader()
     syncHeaderButton(true)
@@ -197,7 +208,7 @@ describe('syncHeaderButton', () => {
     expect(document.getElementById('dh-sound-unlock')).toBeNull()
   })
 
-  it('does nothing when there is no header anchor', () => {
+  it('does nothing when there is no search bar anchor', () => {
     syncHeaderButton(true)
     expect(document.getElementById('dh-sound-unlock')).toBeNull()
   })

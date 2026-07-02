@@ -1,4 +1,6 @@
 import type { Settings, SoundId, SoundChannelConfig } from '../shared/types'
+import { unlockAudio } from '../shared/soundPlayer'
+import { TOOLBAR_ITEM_SELECTORS } from './selectors'
 
 // Sound alerts play a short effect when a genuinely-new message arrives in the
 // open channel. See docs/superpowers/specs/2026-07-01-sound-alerts-design.md.
@@ -11,7 +13,6 @@ import type { Settings, SoundId, SoundChannelConfig } from '../shared/types'
 
 const QUIET_MS = 1500      // silence right after a channel navigation (bulk render)
 const THROTTLE_MS = 1200   // coalesce bursts: at most one sound per window
-const VOLUME_CEILING = 0.7 // hard cap below unity, leaves the limiter headroom
 
 // ---- runtime state (per tab, not persisted) ----
 let armed = false
@@ -180,61 +181,6 @@ export function onNavigate(settings: Settings, channelId: string | null): void {
   syncHeaderButton(isChannelEnabled(settings, channelId))
 }
 
-// ---- Web Audio playback with a loudness limiter ----
-
-let audioCtx: AudioContext | null = null
-let limiter: DynamicsCompressorNode | null = null
-const buffers: Partial<Record<SoundId, AudioBuffer>> = {}
-
-function ensureCtx(): AudioContext | null {
-  const AC = (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext })
-    .AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-  if (!AC) return null
-  if (!audioCtx) {
-    audioCtx = new AC()
-    limiter = audioCtx.createDynamicsCompressor()
-    // Brickwall-ish limiter: bound peak output regardless of source loudness.
-    limiter.threshold.value = -3
-    limiter.knee.value = 0
-    limiter.ratio.value = 20
-    limiter.attack.value = 0.003
-    limiter.release.value = 0.1
-    limiter.connect(audioCtx.destination)
-  }
-  return audioCtx
-}
-
-async function loadBuffer(ctx: AudioContext, sound: SoundId): Promise<AudioBuffer | null> {
-  const cached = buffers[sound]
-  if (cached) return cached
-  try {
-    const url = chrome.runtime.getURL(`assets/sounds/${sound}.mp3`)
-    const resp = await fetch(url)
-    const arr = await resp.arrayBuffer()
-    const buf = await ctx.decodeAudioData(arr)
-    buffers[sound] = buf
-    return buf
-  } catch {
-    return null
-  }
-}
-
-export async function playSound(sound: SoundId, volume: number): Promise<void> {
-  const ctx = ensureCtx()
-  if (!ctx || !limiter) return
-  if (ctx.state === 'suspended') {
-    try { await ctx.resume() } catch { /* gesture required; ignore */ }
-  }
-  const buf = await loadBuffer(ctx, sound)
-  if (!buf) return
-  const src = ctx.createBufferSource()
-  src.buffer = buf
-  const gain = ctx.createGain()
-  gain.gain.value = Math.max(0, Math.min(1, volume)) * VOLUME_CEILING
-  src.connect(gain).connect(limiter)
-  src.start()
-}
-
 // ---- arming / mute ----
 
 export function getSoundState(): { armed: boolean; muted: boolean } {
@@ -245,8 +191,7 @@ export function getSoundState(): { armed: boolean; muted: boolean } {
 export function arm(): void {
   armed = true
   muted = false
-  const ctx = ensureCtx()
-  if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => { /* ignore */ })
+  unlockAudio()
 }
 
 /** The header/popup control: arm on first use, then toggle tab-wide mute. */
@@ -281,10 +226,9 @@ function renderButton(btn: HTMLButtonElement): void {
   btn.setAttribute('aria-label', btn.title)
 }
 
-function findHeaderAnchor(): Element | null {
-  const chrome = document.querySelector('div[data-window-chrome="true"]')
-  if (!chrome) return null
-  return chrome.querySelector('[class*="toolbar"]') ?? chrome
+/** The search bar in the channel header - our button sits just to its left. */
+function findSearchBar(): Element | null {
+  return document.querySelector(TOOLBAR_ITEM_SELECTORS.searchBar)
 }
 
 /**
@@ -301,8 +245,8 @@ export function syncHeaderButton(channelEnabled: boolean): void {
   // Already present: leave it be. Arm/mute state changes re-render it directly
   // (toggleArmMute), and the tab-wide arm state does not change on navigation.
   if (existing && existing.isConnected) return
-  const anchor = findHeaderAnchor()
-  if (!anchor) return
+  const search = findSearchBar()
+  if (!search || !search.parentElement) return
   const btn = document.createElement('button')
   btn.id = BTN_ID
   btn.type = 'button'
@@ -312,5 +256,6 @@ export function syncHeaderButton(channelEnabled: boolean): void {
     'background:transparent;border:1px solid #4e5058;border-radius:4px;'
   btn.addEventListener('click', () => { toggleArmMute() })
   renderButton(btn)
-  anchor.insertBefore(btn, anchor.firstChild)
+  // Insert immediately before the search bar so the button sits to its left.
+  search.parentElement.insertBefore(btn, search)
 }

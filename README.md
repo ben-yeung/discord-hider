@@ -44,7 +44,8 @@ Alerts are configured per channel and default to **off** everywhere until you
 turn one on (from the popup's **Sounds** tab or the Settings **Sound Alerts**
 page). Each channel can pick its own sound - **Ding**, **Anime**, **Meet**, or
 **Quack** - and its own volume, falling back to a global default sound and
-volume when unset.
+volume when unset. Clicking a sound in the popup previews it at that channel's
+volume.
 
 Because browsers block audio until you interact with the page, every tab starts
 **muted**: click **Unlock Sound** (injected into the channel header, or the

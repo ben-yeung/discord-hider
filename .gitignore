@@ -3,3 +3,6 @@ dist/
 .superpowers/
 .claude/worktrees/
 *.local
+
+# Lavish review artifacts
+.lavish/

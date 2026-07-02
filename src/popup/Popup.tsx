@@ -17,6 +17,7 @@ import {
   setSoundChannelVolume,
 } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS, SOUND_IDS, SOUND_LABELS } from '../content/selectors'
+import { playSound } from '../shared/soundPlayer'
 import { ToggleRow } from '../shared/components/ToggleRow'
 import type { Settings as SettingsType, ElementKey, Keyword, SoundId } from '../shared/types'
 import './popup.css'
@@ -170,6 +171,11 @@ export function Popup() {
 
   async function handleSoundPick(sound: SoundId | undefined) {
     if (!settings || !channelId) return
+    // Preview the picked sound at this channel's effective volume. The popup
+    // click is a user gesture, so playback is allowed here.
+    const resolved = sound ?? settings.soundAlerts.defaultSound
+    const volume = settings.soundAlerts.channels[channelId]?.volume ?? settings.soundAlerts.defaultVolume
+    void playSound(resolved, volume)
     await setSoundChannelSound(channelId, sound)
     setSettings(s => {
       if (!s) return s

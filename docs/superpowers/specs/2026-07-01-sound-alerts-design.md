@@ -87,8 +87,8 @@ Rejected: best-effort silent play (surprising and unreliable) and auto-priming o
 
 ### ADR-5 - Unlock control in the channel header, with a popup backup
 
-The "Unlock Sound" control is injected into the channel **header** (the `div[data-window-chrome="true"]` region that hosts search / threads / member-list), reusing the existing element-region conventions.
-It is shown only when the open channel has alerts enabled, and re-injected on navigation (Discord re-renders the header).
+The "Unlock Sound" control is injected into the channel **header**, positioned immediately **to the left of the search bar** (anchored via the same `TOOLBAR_ITEM_SELECTORS.searchBar` selector the toolbar-item feature uses), so it sits alongside the existing header icons.
+It is shown only when the open channel has alerts enabled, and re-injected on navigation (Discord re-renders the header); the message observer also self-heals it if the header renders after load.
 Because this extension can **hide that header**, the popup's Sounds tab also carries an arm/mute control as a backup.
 
 > **Known limitation (autoplay + popup):** a click inside the extension popup is a gesture in the *popup* document, not the Discord page, so the popup can flip the armed flag but cannot itself satisfy the page's autoplay gate. In practice the user has almost always already clicked within the Discord page (navigating channels), which unlocks it. The in-header button remains the fully-guaranteed unlock path because its click lands in the page.
@@ -124,6 +124,14 @@ The `DynamicsCompressorNode` is configured as a brickwall-ish limiter (low thres
 The result: however hot a source `.mp3` is, peak output is bounded and an alert can never blast at full system loudness.
 The shared `AudioContext` is created lazily and `resume()`d on the unlock gesture (ties into ADR-4).
 Source buffers are fetched once via `chrome.runtime.getURL` and decoded/cached.
+
+This playback graph lives in a shared module (`src/shared/soundPlayer.ts`) used by **both** the content script (live alerts) and the popup (previews), so a preview sounds exactly like a real alert - same limiter, same volume ceiling.
+
+### ADR-13 - Popup sound picker previews on click
+
+Clicking a sound chip in the popup Sounds tab both selects that sound and **previews** it at the channel's effective volume (its own volume, else the global default), through the shared limiter.
+The popup click is a page user gesture, so playback is permitted there regardless of the Discord tab's arm state.
+The "Default" chip previews the current global default sound.
 
 ### ADR-12 - Icons are inline SVG (lucide), not emoji
 
@@ -242,7 +250,7 @@ Alongside Elements / Keywords, operating on the current channel:
 
 - Arm / Mute control at the top (backup for ADR-5), reflecting live `getSoundState`, using the `Lock`/`Volume2`/`VolumeX` icons.
 - Enable toggle for the current channel.
-- Sound picker chips (the four sounds; "Default" uses the global default), each with a `Play` preview.
+- Sound picker chips (the four sounds; "Default" uses the global default). Clicking a chip selects it and previews it at the channel's volume through the shared limiter (ADR-13).
 - Per-channel volume slider below the picker (overrides the global default volume). Picker + volume grey out when the channel is disabled.
 - A note when not on a channel, mirroring the Keywords tab.
 
@@ -260,7 +268,8 @@ Alongside Elements / Keywords, operating on the current channel:
 |---|---|
 | `src/shared/types.ts` | Add `SoundId`, `SoundChannelConfig`, `SoundAlertSettings`; add `soundAlerts` to `Settings` |
 | `src/shared/storage.ts` | Defaults + `getSettings` merge; helpers `setSoundChannelEnabled`, `setSoundChannelSound`, `setSoundChannelVolume`, `removeSoundChannel`, `setSoundDefaultSound`, `setSoundDefaultVolume` |
-| `src/content/soundAlerts.ts` (new) | Detection algorithm, runtime state, Web Audio limiter playback (ADR-11), header Unlock control injection |
+| `src/shared/soundPlayer.ts` (new) | Shared Web Audio limiter playback (ADR-11), used by content alerts and popup previews |
+| `src/content/soundAlerts.ts` (new) | Detection algorithm, runtime state, header Unlock control injection (left of the search bar) |
 | `src/content/index.ts` | Wire the sound observer + navigation hooks; add `getSoundState` / `setSoundArmed` / `toggleSoundMute` message handlers |
 | `src/content/selectors.ts` | Header injection anchor + message-row / snowflake selectors |
 | `src/popup/Popup.tsx` | New "Sounds" tab: per-channel enable, sound picker, arm/mute |
