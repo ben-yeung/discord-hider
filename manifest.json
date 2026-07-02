@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Discord Hider",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Toggle visibility of Discord UI elements",
   "permissions": ["storage", "tabs"],
   "host_permissions": ["https://discord.com/*"],

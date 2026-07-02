@@ -1,4 +1,4 @@
-import type { Settings, ElementKey, ElementConfig, Keyword, ChannelKeywordConfig, KeywordSettings, ToolbarItemKey, SoundId } from './types'
+import type { Settings, ElementKey, ElementConfig, Keyword, ChannelKeywordConfig, KeywordSettings, ToolbarItemKey, SoundId, ChannelMeta, GuildMeta } from './types'
 
 export const DEFAULT_SETTINGS: Settings = {
   elements: {
@@ -26,6 +26,8 @@ export const DEFAULT_SETTINGS: Settings = {
     defaultVolume: 0.5,
     channels: {},
   },
+  channelMeta: {},
+  guilds: {},
 }
 
 export function getSettings(): Promise<Settings> {
@@ -205,4 +207,38 @@ export async function removeSoundChannel(channelId: string): Promise<void> {
   const s = await getSettings()
   delete s.soundAlerts.channels[channelId]
   await saveSettings(s)
+}
+
+export interface ChannelMetaInput {
+  channelName?: string | null
+  guildId?: string | null
+  guildName?: string | null
+  guildIcon?: string | null
+}
+
+/**
+ * Upsert display metadata for a channel (and its guild) captured from a live
+ * Discord tab. Only non-empty fields are written, and storage is only touched
+ * when something actually changed — callers can fire this on every popup open
+ * without churning `chrome.storage.sync` or triggering feedback loops via
+ * `storage.onChanged`.
+ */
+export async function recordChannelMeta(channelId: string, info: ChannelMetaInput): Promise<void> {
+  const s = await getSettings()
+  let changed = false
+
+  const meta: ChannelMeta = { ...s.channelMeta[channelId] }
+  if (info.channelName && meta.name !== info.channelName) { meta.name = info.channelName; changed = true }
+  if (info.guildId && meta.guildId !== info.guildId) { meta.guildId = info.guildId; changed = true }
+  if (changed) s.channelMeta[channelId] = meta
+
+  if (info.guildId) {
+    const guild: GuildMeta = { ...s.guilds[info.guildId] }
+    let guildChanged = false
+    if (info.guildName && guild.name !== info.guildName) { guild.name = info.guildName; guildChanged = true }
+    if (info.guildIcon && guild.icon !== info.guildIcon) { guild.icon = info.guildIcon; guildChanged = true }
+    if (guildChanged) { s.guilds[info.guildId] = guild; changed = true }
+  }
+
+  if (changed) await saveSettings(s)
 }

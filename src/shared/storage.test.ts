@@ -13,6 +13,7 @@ import {
   setSoundChannelSound,
   setSoundChannelVolume,
   removeSoundChannel,
+  recordChannelMeta,
   DEFAULT_SETTINGS,
 } from './storage'
 import {
@@ -346,5 +347,84 @@ describe('sound alerts storage', () => {
     await removeSoundChannel('789012')
     const s = await getSettings()
     expect(s.soundAlerts.channels['789012']).toBeUndefined()
+  })
+})
+
+describe('channel meta storage', () => {
+  let stored: Record<string, unknown> = {}
+
+  beforeEach(() => {
+    stored = {}
+    vi.clearAllMocks()
+    vi.mocked(chrome.storage.sync.get).mockImplementation((keys, cb) => {
+      const key = typeof keys === 'string' ? keys : (Object.keys(keys as object)[0] ?? '')
+      cb?.({ [key]: stored[key] })
+      return Promise.resolve({ [key]: stored[key] })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((items, cb) => {
+      Object.assign(stored, items)
+      cb?.()
+      return Promise.resolve()
+    })
+  })
+
+  it('DEFAULT_SETTINGS has empty channelMeta and guilds maps', async () => {
+    const s = await getSettings()
+    expect(s.channelMeta).toEqual({})
+    expect(s.guilds).toEqual({})
+  })
+
+  it('getSettings fills in channelMeta/guilds when absent from stored data', async () => {
+    stored['settings'] = {
+      elements: DEFAULT_SETTINGS.elements,
+      channelOverrides: {},
+      keywords: DEFAULT_SETTINGS.keywords,
+      topToolbarItems: DEFAULT_SETTINGS.topToolbarItems,
+      soundAlerts: DEFAULT_SETTINGS.soundAlerts,
+    }
+    const s = await getSettings()
+    expect(s.channelMeta).toEqual({})
+    expect(s.guilds).toEqual({})
+  })
+
+  it('recordChannelMeta stores channel name and normalized guild', async () => {
+    await recordChannelMeta('456', {
+      channelName: 'general',
+      guildId: '111',
+      guildName: 'My Server',
+      guildIcon: 'https://cdn.discordapp.com/icons/111/abc.webp',
+    })
+    const s = await getSettings()
+    expect(s.channelMeta['456']).toEqual({ name: 'general', guildId: '111' })
+    expect(s.guilds['111']).toEqual({ name: 'My Server', icon: 'https://cdn.discordapp.com/icons/111/abc.webp' })
+  })
+
+  it('ignores null/empty guild fields and creates no empty guild entry', async () => {
+    await recordChannelMeta('456', { channelName: 'general', guildId: '111', guildName: null, guildIcon: null })
+    const s = await getSettings()
+    expect(s.channelMeta['456']).toEqual({ name: 'general', guildId: '111' })
+    expect(s.guilds['111']).toBeUndefined()
+  })
+
+  it('recordChannelMeta does not write when nothing is known', async () => {
+    await recordChannelMeta('456', { channelName: null, guildId: null })
+    expect(chrome.storage.sync.set).not.toHaveBeenCalled()
+    const s = await getSettings()
+    expect(s.channelMeta['456']).toBeUndefined()
+  })
+
+  it('recordChannelMeta does not rewrite storage when values are unchanged', async () => {
+    await recordChannelMeta('456', { channelName: 'general', guildId: '111', guildName: 'My Server' })
+    vi.mocked(chrome.storage.sync.set).mockClear()
+    await recordChannelMeta('456', { channelName: 'general', guildId: '111', guildName: 'My Server' })
+    expect(chrome.storage.sync.set).not.toHaveBeenCalled()
+  })
+
+  it('recordChannelMeta updates a guild icon that becomes available later', async () => {
+    await recordChannelMeta('456', { channelName: 'general', guildId: '111' })
+    await recordChannelMeta('456', { guildId: '111', guildIcon: 'https://cdn.discordapp.com/icons/111/new.webp' })
+    const s = await getSettings()
+    expect(s.channelMeta['456']).toEqual({ name: 'general', guildId: '111' })
+    expect(s.guilds['111'].icon).toBe('https://cdn.discordapp.com/icons/111/new.webp')
   })
 })

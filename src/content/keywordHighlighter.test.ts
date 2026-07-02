@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   buildKeywordCSS,
   computeEffectiveKeywords,
   removeHighlights,
   applyKeywords,
   getChannelName,
+  getGuildInfo,
 } from './keywordHighlighter'
 import { DEFAULT_SETTINGS } from '../shared/storage'
 import type { Settings, Keyword } from '../shared/types'
@@ -208,5 +209,44 @@ describe('getChannelName', () => {
   it('returns full trimmed text when no │ separator', () => {
     document.body.innerHTML = `<div class="titleWrapper__abc"><h1><span class="hiddenVisually_xyz">server:</span> general</h1></div>`
     expect(getChannelName()).toBe('general')
+  })
+})
+
+describe('getGuildInfo', () => {
+  afterEach(() => { document.body.innerHTML = '' })
+
+  it('returns nulls when guildId is null', () => {
+    expect(getGuildInfo(null)).toEqual({ name: null, icon: null })
+  })
+
+  it('reads the icon URL matched by guild id and the name from alt text', () => {
+    document.body.innerHTML =
+      `<img src="https://cdn.discordapp.com/icons/111/abc123.webp?size=48" alt="My Server" />`
+    expect(getGuildInfo('111')).toEqual({
+      name: 'My Server',
+      icon: 'https://cdn.discordapp.com/icons/111/abc123.webp?size=48',
+    })
+  })
+
+  it('falls back to the server-rail aria-label when the icon has no alt', () => {
+    document.body.innerHTML =
+      `<div data-list-item-id="guildsnav___111" aria-label="My Server">` +
+      `<img src="https://cdn.discordapp.com/icons/111/abc.webp" alt="" /></div>`
+    expect(getGuildInfo('111')).toEqual({
+      name: 'My Server',
+      icon: 'https://cdn.discordapp.com/icons/111/abc.webp',
+    })
+  })
+
+  it('returns a null icon for a server with no custom icon', () => {
+    document.body.innerHTML =
+      `<div data-list-item-id="guildsnav___222" aria-label="Iconless"><div>IC</div></div>`
+    expect(getGuildInfo('222')).toEqual({ name: 'Iconless', icon: null })
+  })
+
+  it('does not match an icon belonging to a different guild', () => {
+    document.body.innerHTML =
+      `<img src="https://cdn.discordapp.com/icons/999/other.webp" alt="Other" />`
+    expect(getGuildInfo('111')).toEqual({ name: null, icon: null })
   })
 })

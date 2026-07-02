@@ -12,7 +12,9 @@ import {
   addChannelKeyword,
   updateChannelKeyword,
   removeChannelKeyword,
+  recordChannelMeta,
 } from '../shared/storage'
+import { ChannelLabel } from './ChannelLabel'
 import type { Settings, Keyword, ChannelKeywordConfig } from '../shared/types'
 
 function extractChannelId(url: string): string | null {
@@ -80,19 +82,26 @@ export function KeywordsSettings() {
     // Try to get channelId/channelName from active Discord tab
     let channelId: string | null = null
     let channelName: string | null = null
+    let guildId: string | null = null
+    let guildName: string | null = null
+    let guildIcon: string | null = null
     try {
       const [tab] = await chrome.tabs.query({ active: true, url: 'https://discord.com/*' })
       if (tab?.id) {
         const info = await chrome.tabs.sendMessage(tab.id, { type: 'getChannelInfo' }) as
-          { channelId: string | null; channelName: string | null }
+          { channelId: string | null; channelName: string | null; guildId?: string | null; guildName?: string | null; guildIcon?: string | null }
         channelId = info.channelId
         channelName = info.channelName
+        guildId = info.guildId ?? null
+        guildName = info.guildName ?? null
+        guildIcon = info.guildIcon ?? null
       }
     } catch { /* no Discord tab */ }
 
     if (channelId) {
       const cfg: ChannelKeywordConfig = { channelName, inheritGlobals: true, keywords: [] }
       await setChannelKeywordConfig(channelId, cfg)
+      await recordChannelMeta(channelId, { channelName, guildId, guildName, guildIcon })
     } else {
       setAddingChannel(true)
     }
@@ -196,10 +205,7 @@ export function KeywordsSettings() {
           <div key={channelId} className="ch-kw-card">
             <div className="ch-kw-header">
               <div className="ch-kw-name-row">
-                <div className="ch-kw-name-wrap">
-                  <span className="ch-kw-name">{cfg.channelName ?? `#${channelId}`}</span>
-                  {cfg.channelName && <span className="ch-kw-id">{channelId}</span>}
-                </div>
+                <ChannelLabel channelId={channelId} settings={settings} fallbackName={cfg.channelName} />
                 <button
                   className="icon-btn"
                   title="Remove channel"

@@ -15,6 +15,7 @@ import {
   setSoundChannelEnabled,
   setSoundChannelSound,
   setSoundChannelVolume,
+  recordChannelMeta,
 } from '../shared/storage'
 import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS, SOUND_IDS, SOUND_LABELS } from '../content/selectors'
 import { playSound } from '../shared/soundPlayer'
@@ -51,6 +52,14 @@ export function Popup() {
         try {
           const info = await chrome.tabs.sendMessage(t.id, { type: 'getChannelInfo' })
           setChannelName(info?.channelName ?? null)
+          // Persist name + guild for this channel so the settings page can show a
+          // readable label and guild bubble even when this channel isn't open.
+          void recordChannelMeta(id, {
+            channelName: info?.channelName,
+            guildId: info?.guildId,
+            guildName: info?.guildName,
+            guildIcon: info?.guildIcon,
+          })
         } catch { /* not on Discord or content script not ready */ }
         try {
           const state = await chrome.tabs.sendMessage(t.id, { type: 'getSoundState' })
@@ -107,7 +116,7 @@ export function Popup() {
         channelOverrides: {
           ...s.keywords.channelOverrides,
           [channelId]: {
-            channelName: existingConfig?.channelName ?? null,
+            channelName: existingConfig?.channelName ?? channelName,
             inheritGlobals: existingConfig?.inheritGlobals ?? true,
             keywords: [...(existingConfig?.keywords ?? []), kw],
           },
