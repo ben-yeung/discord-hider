@@ -7,8 +7,10 @@ import {
   setSoundChannelSound,
   setSoundChannelVolume,
   removeSoundChannel,
+  recordChannelMeta,
 } from '../shared/storage'
 import { SOUND_IDS, SOUND_LABELS } from '../content/selectors'
+import { ChannelLabel } from './ChannelLabel'
 import type { Settings, SoundId } from '../shared/types'
 
 interface Props {
@@ -74,6 +76,14 @@ export function SoundAlertsSettings({ settings, onSettingsChange }: Props) {
     try {
       const info = await chrome.tabs.sendMessage(t.id, { type: 'getChannelInfo' })
       const id = info?.channelId as string | undefined
+      if (id) {
+        await recordChannelMeta(id, {
+          channelName: info?.channelName,
+          guildId: info?.guildId,
+          guildName: info?.guildName,
+          guildIcon: info?.guildIcon,
+        })
+      }
       if (id && sa.channels[id] === undefined) {
         await setSoundChannelEnabled(id, true)
         patch({ ...settings, soundAlerts: { ...sa, channels: { ...sa.channels, [id]: { enabled: true } } } })
@@ -150,7 +160,7 @@ export function SoundAlertsSettings({ settings, onSettingsChange }: Props) {
 
         {channels.map(([id, cfg]) => (
           <div key={id} className="snd-ch-row">
-            <span className="channel-id grow">{id}</span>
+            <ChannelLabel channelId={id} settings={settings} />
             <button
               type="button"
               className={`mini-toggle${cfg.enabled ? ' on' : ''}`}

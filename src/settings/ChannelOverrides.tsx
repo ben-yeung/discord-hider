@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { saveSettings, setChannelOverride, removeChannelOverride } from '../shared/storage'
 import { ELEMENT_KEYS, LABELS } from '../content/selectors'
+import { ChannelLabel } from './ChannelLabel'
 import type { Settings, ElementKey } from '../shared/types'
 
 interface Props {
@@ -75,7 +76,7 @@ export function ChannelOverrides({ settings, onSettingsChange }: Props) {
 
       {overrides.map(([id, override]) => (
         <div key={id} className="channel-row">
-          <span className="channel-id">{id}</span>
+          <ChannelLabel channelId={id} settings={settings} />
           {ELEMENT_KEYS.map(key => {
             const val = override[key]
             const effective = val ?? settings.elements[key].visible

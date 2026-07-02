@@ -147,6 +147,30 @@ export function getChannelName(): string | null {
   return sep >= 0 ? text.slice(sep + 1).trim() : text
 }
 
+export interface GuildInfo {
+  name: string | null
+  icon: string | null
+}
+
+/**
+ * Read the current server's name and icon URL from the DOM. The icon is matched
+ * by the guild id embedded in its CDN URL (`.../icons/<guildId>/<hash>...`),
+ * which is stable across Discord's frequently-changing CSS class names. Servers
+ * without a custom icon render an acronym instead of an <img>, so `icon` is null
+ * for those and callers fall back to an initials bubble.
+ */
+export function getGuildInfo(guildId: string | null): GuildInfo {
+  if (!guildId) return { name: null, icon: null }
+  const img = document.querySelector<HTMLImageElement>(`img[src*="/icons/${guildId}/"]`)
+  const icon = img?.getAttribute('src') ?? null
+  const railItem = document.querySelector(`[data-list-item-id="guildsnav___${guildId}"]`)
+  const name =
+    (img?.alt?.trim() || null) ??
+    railItem?.getAttribute('aria-label')?.trim() ??
+    null
+  return { name: name || null, icon }
+}
+
 export function startKeywordObserver(
   onNew: (nodes: NodeList) => void,
 ): MutationObserver {

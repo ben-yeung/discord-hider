@@ -16,7 +16,7 @@ const withKeywords: Settings = {
     ],
     channelOverrides: {
       '789012': {
-        channelName: '# sprint-planning',
+        channelName: 'sprint-planning',
         inheritGlobals: true,
         keywords: [{ id: 'ccc', text: 'sprint', color: '#a78bfa', enabled: true }],
       },
@@ -107,7 +107,7 @@ describe('KeywordsSettings', () => {
   it('renders per-channel section with channel name', async () => {
     setupStorage(withKeywords)
     render(<KeywordsSettings />)
-    expect(await screen.findByText('# sprint-planning')).toBeInTheDocument()
+    expect(await screen.findByText('#sprint-planning')).toBeInTheDocument()
   })
 
   it('renders channel keyword', async () => {
@@ -120,7 +120,7 @@ describe('KeywordsSettings', () => {
     setupStorage(withKeywords)
     const user = userEvent.setup()
     render(<KeywordsSettings />)
-    await screen.findByText('# sprint-planning')
+    await screen.findByText('#sprint-planning')
     await user.click(screen.getByTitle('Remove channel'))
     expect(chrome.storage.sync.set).toHaveBeenCalled()
   })

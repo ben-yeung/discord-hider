@@ -1,13 +1,17 @@
 import { getSettings } from '../shared/storage'
 import { applySettings } from './styleManager'
 import { startPicker } from './picker'
-import { applyKeywords, highlightNodes, getChannelName, startKeywordObserver } from './keywordHighlighter'
+import { applyKeywords, highlightNodes, getChannelName, getGuildInfo, startKeywordObserver } from './keywordHighlighter'
 import { onNavigate, processAddedNodes, toggleArmMute, getSoundState, syncHeaderButton, isChannelEnabled } from './soundAlerts'
 import { playSound } from '../shared/soundPlayer'
 import type { ElementKey } from '../shared/types'
 
 function getChannelId(): string | null {
   return window.location.pathname.match(/\/channels\/\d+\/(\d+)/)?.[1] ?? null
+}
+
+function getGuildId(): string | null {
+  return window.location.pathname.match(/\/channels\/(\d+)\/\d+/)?.[1] ?? null
 }
 
 async function applyAll(): Promise<void> {
@@ -28,7 +32,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     startPicker(message.key as ElementKey, applyAll)
   }
   if (message.type === 'getChannelInfo') {
-    sendResponse({ channelId: getChannelId(), channelName: getChannelName() })
+    const guildId = getGuildId()
+    const guild = getGuildInfo(guildId)
+    sendResponse({
+      channelId: getChannelId(),
+      channelName: getChannelName(),
+      guildId,
+      guildName: guild.name,
+      guildIcon: guild.icon,
+    })
   }
   if (message.type === 'getSoundState') {
     sendResponse(getSoundState())

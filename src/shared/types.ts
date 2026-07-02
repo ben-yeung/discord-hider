@@ -45,6 +45,26 @@ export interface SoundAlertSettings {
   }
 }
 
+/**
+ * Display metadata for a channel, captured from the live Discord tab whenever
+ * we have one open. Purely cosmetic — used so the settings page can show a
+ * human-readable name and guild bubble instead of a bare channel id.
+ */
+export interface ChannelMeta {
+  name?: string        // channel name without a leading '#', e.g. "general"
+  guildId?: string     // owning server; keys into `guilds`
+}
+
+/**
+ * Display metadata for a guild (server). Normalized out of ChannelMeta so a
+ * server's icon is stored once regardless of how many of its channels are
+ * configured.
+ */
+export interface GuildMeta {
+  name?: string        // server name, used for the bubble tooltip and initials fallback
+  icon?: string        // cdn.discordapp.com icon URL; absent when the server has no custom icon
+}
+
 export interface Settings {
   elements: Record<ElementKey, ElementConfig>
   channelOverrides: {
@@ -53,4 +73,10 @@ export interface Settings {
   keywords: KeywordSettings
   topToolbarItems: Record<ToolbarItemKey, boolean>
   soundAlerts: SoundAlertSettings
+  channelMeta: {
+    [channelId: string]: ChannelMeta
+  }
+  guilds: {
+    [guildId: string]: GuildMeta
+  }
 }

@@ -30,6 +30,8 @@ const allHidden: Settings = {
     defaultVolume: 0.5,
     channels: {},
   },
+  channelMeta: {},
+  guilds: {},
 }
 
 describe('buildCSS', () => {
