@@ -37,6 +37,23 @@ Highlighting is case-insensitive, applies to existing and newly-arriving
 messages (via a mutation observer), and supports **per-channel keyword sets**
 that can either replace or inherit your global keywords.
 
+### Sound alerts
+
+Play a short sound when a new message arrives in the channel you're viewing.
+Alerts are configured per channel and default to **off** everywhere until you
+turn one on (from the popup's **Sounds** tab or the Settings **Sound Alerts**
+page). Each channel can pick its own sound - **Ding**, **Anime**, **Meet**, or
+**Quack** - and its own volume, falling back to a global default sound and
+volume when unset.
+
+Because browsers block audio until you interact with the page, every tab starts
+**muted**: click **Unlock Sound** (injected into the channel header, or the
+backup control in the popup) to arm alerts for that tab until you reload. The
+same control then mutes/unmutes the whole tab. Only genuinely new messages in
+the open channel fire a sound - backscroll and the burst rendered when you
+switch channels stay silent - and rapid bursts are coalesced to one sound.
+Playback runs through a limiter so an alert can never blast at full volume.
+
 ### Per-channel overrides
 
 Hide or show elements differently per channel, and scope keyword sets to

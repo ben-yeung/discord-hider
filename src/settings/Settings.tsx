@@ -5,10 +5,11 @@ import { ToggleRow } from '../shared/components/ToggleRow'
 import { TopToolbarRow } from './TopToolbarRow'
 import { ChannelOverrides } from './ChannelOverrides'
 import { KeywordsSettings } from './KeywordsSettings'
+import { SoundAlertsSettings } from './SoundAlertsSettings'
 import type { Settings as SettingsType, ElementKey, ToolbarItemKey } from '../shared/types'
 import './settings.css'
 
-type Tab = 'visibility' | 'keywords'
+type Tab = 'visibility' | 'keywords' | 'sounds'
 
 export function Settings() {
   const [settings, setSettings] = useState<SettingsType | null>(null)
@@ -68,6 +69,9 @@ export function Settings() {
         <button className={`settings-tab${tab === 'keywords' ? ' active' : ''}`} onClick={() => setTab('keywords')}>
           Keywords
         </button>
+        <button className={`settings-tab${tab === 'sounds' ? ' active' : ''}`} onClick={() => setTab('sounds')}>
+          Sound Alerts
+        </button>
       </div>
       <main className="settings-main">
         {tab === 'visibility' && (
@@ -106,6 +110,7 @@ export function Settings() {
           </>
         )}
         {tab === 'keywords' && <KeywordsSettings />}
+        {tab === 'sounds' && <SoundAlertsSettings settings={settings} onSettingsChange={setSettings} />}
       </main>
     </div>
   )

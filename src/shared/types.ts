@@ -29,6 +29,22 @@ export interface KeywordSettings {
   }
 }
 
+export type SoundId = 'ding' | 'anime' | 'meet' | 'quack'
+
+export interface SoundChannelConfig {
+  enabled: boolean       // absent entry = off
+  sound?: SoundId        // omitted = use the global default sound
+  volume?: number        // 0..1; omitted = use the global default volume
+}
+
+export interface SoundAlertSettings {
+  defaultSound: SoundId          // used when a channel has no sound of its own
+  defaultVolume: number          // 0..1; used when a channel has no volume of its own
+  channels: {
+    [channelId: string]: SoundChannelConfig
+  }
+}
+
 export interface Settings {
   elements: Record<ElementKey, ElementConfig>
   channelOverrides: {
@@ -36,4 +52,5 @@ export interface Settings {
   }
   keywords: KeywordSettings
   topToolbarItems: Record<ToolbarItemKey, boolean>
+  soundAlerts: SoundAlertSettings
 }

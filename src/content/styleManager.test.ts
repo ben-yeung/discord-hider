@@ -25,6 +25,11 @@ const allHidden: Settings = {
     memberList: false,
     searchBar: false,
   },
+  soundAlerts: {
+    defaultSound: 'ding',
+    defaultVolume: 0.5,
+    channels: {},
+  },
 }
 
 describe('buildCSS', () => {
