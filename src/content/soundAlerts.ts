@@ -1,6 +1,5 @@
 import type { Settings, SoundId, SoundChannelConfig } from '../shared/types'
 import { unlockAudio } from '../shared/soundPlayer'
-import { TOOLBAR_ITEM_SELECTORS } from './selectors'
 
 // Sound alerts play a short effect when a genuinely-new message arrives in the
 // open channel. See docs/superpowers/specs/2026-07-01-sound-alerts-design.md.
@@ -226,9 +225,18 @@ function renderButton(btn: HTMLButtonElement): void {
   btn.setAttribute('aria-label', btn.title)
 }
 
-/** The search bar in the channel header - our button sits just to its left. */
+/**
+ * The search bar in the channel header toolbar - our button sits just to its
+ * left. The toolbar (div[class*="toolbar__"]) holds the header icon buttons and
+ * the search box (div[class*="search__"]); we pick the toolbar that actually
+ * contains a search box rather than assuming a fixed ancestor.
+ */
 function findSearchBar(): Element | null {
-  return document.querySelector(TOOLBAR_ITEM_SELECTORS.searchBar)
+  for (const toolbar of Array.from(document.querySelectorAll('div[class*="toolbar__"]'))) {
+    const search = toolbar.querySelector('div[class*="search__"]')
+    if (search) return search
+  }
+  return null
 }
 
 /**
