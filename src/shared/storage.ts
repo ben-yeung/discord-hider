@@ -1,4 +1,4 @@
-import type { Settings, ElementKey, ElementConfig, Keyword, ChannelKeywordConfig, KeywordSettings, ToolbarItemKey } from './types'
+import type { Settings, ElementKey, ElementConfig, Keyword, ChannelKeywordConfig, KeywordSettings, ToolbarItemKey, SoundId } from './types'
 
 export const DEFAULT_SETTINGS: Settings = {
   elements: {
@@ -21,6 +21,11 @@ export const DEFAULT_SETTINGS: Settings = {
     memberList: true,
     searchBar: true,
   },
+  soundAlerts: {
+    defaultSound: 'ding',
+    defaultVolume: 0.5,
+    channels: {},
+  },
 }
 
 export function getSettings(): Promise<Settings> {
@@ -33,6 +38,7 @@ export function getSettings(): Promise<Settings> {
         ...stored,
         keywords: { ...DEFAULT_SETTINGS.keywords, ...(stored.keywords ?? {}) },
         topToolbarItems: { ...DEFAULT_SETTINGS.topToolbarItems, ...(stored.topToolbarItems ?? {}) },
+        soundAlerts: { ...DEFAULT_SETTINGS.soundAlerts, ...(stored.soundAlerts ?? {}) },
       })
     })
   })
@@ -156,5 +162,47 @@ export async function removeChannelKeyword(channelId: string, id: string): Promi
   const cfg = s.keywords.channelOverrides[channelId]
   if (!cfg) return
   cfg.keywords = cfg.keywords.filter(k => k.id !== id)
+  await saveSettings(s)
+}
+
+export async function setSoundDefaultSound(sound: SoundId): Promise<void> {
+  const s = await getSettings()
+  s.soundAlerts.defaultSound = sound
+  await saveSettings(s)
+}
+
+export async function setSoundDefaultVolume(volume: number): Promise<void> {
+  const s = await getSettings()
+  s.soundAlerts.defaultVolume = volume
+  await saveSettings(s)
+}
+
+export async function setSoundChannelEnabled(channelId: string, enabled: boolean): Promise<void> {
+  const s = await getSettings()
+  s.soundAlerts.channels[channelId] = { ...s.soundAlerts.channels[channelId], enabled }
+  await saveSettings(s)
+}
+
+export async function setSoundChannelSound(channelId: string, sound: SoundId | undefined): Promise<void> {
+  const s = await getSettings()
+  const cfg = { ...s.soundAlerts.channels[channelId], enabled: s.soundAlerts.channels[channelId]?.enabled ?? false }
+  if (sound === undefined) delete cfg.sound
+  else cfg.sound = sound
+  s.soundAlerts.channels[channelId] = cfg
+  await saveSettings(s)
+}
+
+export async function setSoundChannelVolume(channelId: string, volume: number | undefined): Promise<void> {
+  const s = await getSettings()
+  const cfg = { ...s.soundAlerts.channels[channelId], enabled: s.soundAlerts.channels[channelId]?.enabled ?? false }
+  if (volume === undefined) delete cfg.volume
+  else cfg.volume = volume
+  s.soundAlerts.channels[channelId] = cfg
+  await saveSettings(s)
+}
+
+export async function removeSoundChannel(channelId: string): Promise<void> {
+  const s = await getSettings()
+  delete s.soundAlerts.channels[channelId]
   await saveSettings(s)
 }

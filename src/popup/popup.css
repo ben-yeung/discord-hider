@@ -206,3 +206,93 @@ body {
   border-color: #7983f5;
   color: #a8b0f8;
 }
+
+/* Sound alerts tab */
+.popup-snd { background: #2b2d31; }
+
+.popup-snd-arm {
+  padding: 12px 14px;
+  border-bottom: 1px solid #1e1f22;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-snd-arm-btn {
+  width: 100%;
+  border-radius: 6px;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.popup-snd-arm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.popup-snd-arm-btn.locked { border-color: #f0b232; color: #f0b232; }
+.popup-snd-arm-btn.locked:hover:not(:disabled) { background: rgba(240, 178, 50, 0.12); }
+.popup-snd-arm-btn.armed { background: rgba(59, 165, 93, 0.14); border-color: #3ba55d; color: #6ee79a; }
+.popup-snd-arm-btn.muted { border-color: #4e5058; color: #949ba4; }
+
+.popup-snd-arm-sub { font-size: 11px; color: #949ba4; text-align: center; line-height: 1.4; }
+
+.popup-snd-ch {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 10px;
+  border-bottom: 1px solid #1e1f22;
+}
+
+.popup-snd-ch-name { flex: 1; color: #dbdee1; font-size: 13px; font-weight: 600; }
+
+.popup-snd-config.disabled { opacity: 0.4; pointer-events: none; }
+
+.popup-snd-desc { padding: 10px 14px 2px; color: #949ba4; font-size: 11px; }
+
+.popup-snd-picker {
+  padding: 6px 14px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.popup-snd-chip {
+  border: 1px solid #4e5058;
+  background: transparent;
+  color: #b5bac1;
+  border-radius: 14px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.popup-snd-chip:hover { border-color: #6d6f78; color: #dbdee1; }
+.popup-snd-chip.sel { background: #5865f2; border-color: #5865f2; color: #fff; }
+.popup-snd-chip.sel.def { background: #f0b232; border-color: #f0b232; color: #1a1a1a; }
+
+.popup-snd-vol {
+  padding: 4px 14px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b5bac1;
+}
+
+.popup-snd-vol input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: #5865f2;
+}
+
+.popup-snd-vol-val { width: 34px; text-align: right; color: #b5bac1; font-size: 12px; }

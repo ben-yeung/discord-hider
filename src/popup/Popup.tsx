@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Eye, EyeOff, X } from 'lucide-react'
+import { Settings, Eye, EyeOff, X, Lock, Volume2, VolumeX, Play } from 'lucide-react'
 import {
   getSettings,
   saveSettings,
@@ -12,13 +12,17 @@ import {
   removeGlobalKeyword,
   removeChannelKeyword,
   resetChannelToVisible,
+  setSoundChannelEnabled,
+  setSoundChannelSound,
+  setSoundChannelVolume,
 } from '../shared/storage'
-import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS } from '../content/selectors'
+import { DEFAULT_SELECTORS, ELEMENT_KEYS, LABELS, SOUND_IDS, SOUND_LABELS } from '../content/selectors'
+import { playSound } from '../shared/soundPlayer'
 import { ToggleRow } from '../shared/components/ToggleRow'
-import type { Settings as SettingsType, ElementKey, Keyword } from '../shared/types'
+import type { Settings as SettingsType, ElementKey, Keyword, SoundId } from '../shared/types'
 import './popup.css'
 
-type Tab = 'elements' | 'keywords'
+type Tab = 'elements' | 'keywords' | 'sounds'
 
 export function Popup() {
   const [settings, setSettings] = useState<SettingsType | null>(null)
@@ -28,6 +32,8 @@ export function Popup() {
   const [isDiscordPage, setIsDiscordPage] = useState(false)
   const [newKwText, setNewKwText] = useState('')
   const [newKwColor, setNewKwColor] = useState('#5865f2')
+  const [tabId, setTabId] = useState<number | null>(null)
+  const [soundState, setSoundState] = useState<{ armed: boolean; muted: boolean }>({ armed: false, muted: false })
 
   useEffect(() => {
     getSettings().then(setSettings)
@@ -40,11 +46,16 @@ export function Popup() {
       setIsDiscordPage(url.startsWith('https://discord.com/'))
       const id = url.match(/\/channels\/\d+\/(\d+)/)?.[1] ?? null
       setChannelId(id)
+      setTabId(t?.id ?? null)
       if (t?.id && id) {
         try {
           const info = await chrome.tabs.sendMessage(t.id, { type: 'getChannelInfo' })
           setChannelName(info?.channelName ?? null)
         } catch { /* not on Discord or content script not ready */ }
+        try {
+          const state = await chrome.tabs.sendMessage(t.id, { type: 'getSoundState' })
+          if (state) setSoundState(state)
+        } catch { /* content script not ready */ }
       }
     })
     return () => chrome.storage.onChanged.removeListener(listener)
@@ -137,6 +148,57 @@ export function Popup() {
     }
   }
 
+  async function handleArmMute() {
+    if (!tabId) return
+    try {
+      const state = await chrome.tabs.sendMessage(tabId, { type: 'toggleSoundArmMute' })
+      if (state) setSoundState(state)
+    } catch { /* content script not ready */ }
+  }
+
+  async function handleSoundEnableToggle() {
+    if (!settings || !channelId) return
+    const next = !(settings.soundAlerts.channels[channelId]?.enabled ?? false)
+    await setSoundChannelEnabled(channelId, next)
+    setSettings(s => s ? {
+      ...s,
+      soundAlerts: {
+        ...s.soundAlerts,
+        channels: { ...s.soundAlerts.channels, [channelId]: { ...s.soundAlerts.channels[channelId], enabled: next } },
+      },
+    } : s)
+  }
+
+  async function handleSoundPick(sound: SoundId | undefined) {
+    if (!settings || !channelId) return
+    // Preview the picked sound at this channel's effective volume. The popup
+    // click is a user gesture, so playback is allowed here.
+    const resolved = sound ?? settings.soundAlerts.defaultSound
+    const volume = settings.soundAlerts.channels[channelId]?.volume ?? settings.soundAlerts.defaultVolume
+    void playSound(resolved, volume)
+    await setSoundChannelSound(channelId, sound)
+    setSettings(s => {
+      if (!s) return s
+      const cfg = { ...s.soundAlerts.channels[channelId], enabled: s.soundAlerts.channels[channelId]?.enabled ?? false }
+      if (sound === undefined) delete cfg.sound; else cfg.sound = sound
+      return { ...s, soundAlerts: { ...s.soundAlerts, channels: { ...s.soundAlerts.channels, [channelId]: cfg } } }
+    })
+  }
+
+  async function commitSoundVolume(volume: number) {
+    if (!channelId) return
+    await setSoundChannelVolume(channelId, volume)
+  }
+
+  function updateSoundVolumeLocal(volume: number) {
+    if (!channelId) return
+    setSettings(s => {
+      if (!s) return s
+      const cfg = { ...s.soundAlerts.channels[channelId], enabled: s.soundAlerts.channels[channelId]?.enabled ?? false, volume }
+      return { ...s, soundAlerts: { ...s.soundAlerts, channels: { ...s.soundAlerts.channels, [channelId]: cfg } } }
+    })
+  }
+
   function openSettings() { chrome.runtime.openOptionsPage(); window.close() }
 
   if (!settings) return null
@@ -175,6 +237,9 @@ export function Popup() {
             </button>
             <button className={`popup-tab${tab === 'keywords' ? ' active' : ''}`} onClick={() => setTab('keywords')}>
               Keywords
+            </button>
+            <button className={`popup-tab${tab === 'sounds' ? ' active' : ''}`} onClick={() => setTab('sounds')}>
+              Sounds
             </button>
           </div>
 
@@ -263,6 +328,83 @@ export function Popup() {
                 </div>
               ) : (
                 <p className="popup-kw-channel-note">Navigate to a channel to add keywords.</p>
+              )}
+            </div>
+          )}
+
+          {tab === 'sounds' && (
+            <div className="popup-snd">
+              <div className="popup-snd-arm">
+                <button
+                  className={`popup-snd-arm-btn ${!soundState.armed ? 'locked' : soundState.muted ? 'muted' : 'armed'}`}
+                  onClick={handleArmMute}
+                  disabled={!isDiscordPage}
+                >
+                  {!soundState.armed ? <Lock size={15} /> : soundState.muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                  <span>{!soundState.armed ? 'Unlock Sound' : soundState.muted ? 'Muted' : 'Sound On'}</span>
+                </button>
+                <p className="popup-snd-arm-sub">
+                  {!soundState.armed
+                    ? 'Tab is muted on load. Unlock to allow alert sounds (this tab, until reload).'
+                    : soundState.muted ? 'Silenced. Click to unmute this tab.' : 'Armed tab-wide. Click to mute this tab.'}
+                </p>
+              </div>
+
+              {channelId ? (
+                <>
+                  <div className="popup-snd-ch">
+                    <span className="popup-snd-ch-name">
+                      {channelName ? `#${channelName}` : 'This channel'}
+                    </span>
+                    <button
+                      className={`switch ${settings.soundAlerts.channels[channelId]?.enabled ? 'on' : 'off'}`}
+                      role="switch"
+                      aria-checked={settings.soundAlerts.channels[channelId]?.enabled ?? false}
+                      aria-label="Toggle sound alerts for this channel"
+                      onClick={handleSoundEnableToggle}
+                    />
+                  </div>
+
+                  <div className={`popup-snd-config${settings.soundAlerts.channels[channelId]?.enabled ? '' : ' disabled'}`}>
+                    <p className="popup-snd-desc">Sound for this channel</p>
+                    <div className="popup-snd-picker">
+                      <button
+                        className={`popup-snd-chip${settings.soundAlerts.channels[channelId]?.sound === undefined ? ' sel def' : ''}`}
+                        onClick={() => handleSoundPick(undefined)}
+                      >
+                        Default
+                      </button>
+                      {SOUND_IDS.map(id => (
+                        <button
+                          key={id}
+                          className={`popup-snd-chip${settings.soundAlerts.channels[channelId]?.sound === id ? ' sel' : ''}`}
+                          onClick={() => handleSoundPick(id)}
+                        >
+                          <Play size={11} /> {SOUND_LABELS[id]}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="popup-snd-desc">Volume for this channel</p>
+                    <div className="popup-snd-vol">
+                      <Volume2 size={15} />
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={Math.round((settings.soundAlerts.channels[channelId]?.volume ?? settings.soundAlerts.defaultVolume) * 100)}
+                        onChange={e => updateSoundVolumeLocal(Number(e.target.value) / 100)}
+                        onPointerUp={e => commitSoundVolume(Number((e.target as HTMLInputElement).value) / 100)}
+                        onKeyUp={e => commitSoundVolume(Number((e.target as HTMLInputElement).value) / 100)}
+                        aria-label="Channel volume"
+                      />
+                      <span className="popup-snd-vol-val">
+                        {Math.round((settings.soundAlerts.channels[channelId]?.volume ?? settings.soundAlerts.defaultVolume) * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="popup-kw-channel-note">Navigate to a channel to configure sound alerts.</p>
               )}
             </div>
           )}

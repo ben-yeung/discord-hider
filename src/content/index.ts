@@ -2,6 +2,8 @@ import { getSettings } from '../shared/storage'
 import { applySettings } from './styleManager'
 import { startPicker } from './picker'
 import { applyKeywords, highlightNodes, getChannelName, startKeywordObserver } from './keywordHighlighter'
+import { onNavigate, processAddedNodes, toggleArmMute, getSoundState, syncHeaderButton, isChannelEnabled } from './soundAlerts'
+import { playSound } from '../shared/soundPlayer'
 import type { ElementKey } from '../shared/types'
 
 function getChannelId(): string | null {
@@ -12,6 +14,7 @@ async function applyAll(): Promise<void> {
   const s = await getSettings()
   applySettings(s)
   applyKeywords(s, getChannelId())
+  onNavigate(s, getChannelId())
 }
 
 applyAll()
@@ -26,6 +29,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
   if (message.type === 'getChannelInfo') {
     sendResponse({ channelId: getChannelId(), channelName: getChannelName() })
+  }
+  if (message.type === 'getSoundState') {
+    sendResponse(getSoundState())
+  }
+  if (message.type === 'toggleSoundArmMute') {
+    sendResponse(toggleArmMute())
   }
 })
 
@@ -49,8 +58,15 @@ if (navigation) {
   window.addEventListener('popstate', () => applyAll())
 }
 
-// Highlight newly loaded messages without re-scanning the full DOM
+// Highlight newly loaded messages without re-scanning the full DOM, and fire
+// per-channel sound alerts for genuinely-new messages in the open channel.
 startKeywordObserver(async nodes => {
   const s = await getSettings()
-  highlightNodes(nodes, s, getChannelId())
+  const channelId = getChannelId()
+  highlightNodes(nodes, s, channelId)
+  // Self-heal the header button if Discord rendered the header after load.
+  syncHeaderButton(isChannelEnabled(s, channelId))
+  for (const intent of processAddedNodes(nodes, s, channelId)) {
+    void playSound(intent.sound, intent.volume)
+  }
 })

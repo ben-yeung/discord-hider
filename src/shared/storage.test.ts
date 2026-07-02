@@ -7,6 +7,12 @@ import {
   removeChannelOverride,
   resetChannelToVisible,
   setToolbarItemVisible,
+  setSoundDefaultSound,
+  setSoundDefaultVolume,
+  setSoundChannelEnabled,
+  setSoundChannelSound,
+  setSoundChannelVolume,
+  removeSoundChannel,
   DEFAULT_SETTINGS,
 } from './storage'
 import {
@@ -260,5 +266,85 @@ describe('topToolbarItems storage', () => {
     const s = await getSettings()
     expect(s.topToolbarItems.memberList).toBe(DEFAULT_SETTINGS.topToolbarItems.memberList)
     expect(s.topToolbarItems.searchBar).toBe(DEFAULT_SETTINGS.topToolbarItems.searchBar)
+  })
+})
+
+describe('sound alerts storage', () => {
+  let stored: Record<string, unknown> = {}
+
+  beforeEach(() => {
+    stored = {}
+    vi.clearAllMocks()
+    vi.mocked(chrome.storage.sync.get).mockImplementation((keys, cb) => {
+      const key = typeof keys === 'string' ? keys : (Object.keys(keys as object)[0] ?? '')
+      cb?.({ [key]: stored[key] })
+      return Promise.resolve({ [key]: stored[key] })
+    })
+    vi.mocked(chrome.storage.sync.set).mockImplementation((items, cb) => {
+      Object.assign(stored, items)
+      cb?.()
+      return Promise.resolve()
+    })
+  })
+
+  it('DEFAULT_SETTINGS has sound alerts off for all channels', async () => {
+    const s = await getSettings()
+    expect(s.soundAlerts).toEqual({ defaultSound: 'ding', defaultVolume: 0.5, channels: {} })
+  })
+
+  it('getSettings fills in default soundAlerts when absent from stored data', async () => {
+    stored['settings'] = {
+      elements: DEFAULT_SETTINGS.elements,
+      channelOverrides: {},
+      keywords: DEFAULT_SETTINGS.keywords,
+      topToolbarItems: DEFAULT_SETTINGS.topToolbarItems,
+    }
+    const s = await getSettings()
+    expect(s.soundAlerts).toEqual(DEFAULT_SETTINGS.soundAlerts)
+  })
+
+  it('setSoundDefaultSound and setSoundDefaultVolume persist', async () => {
+    await setSoundDefaultSound('quack')
+    await setSoundDefaultVolume(0.8)
+    const s = await getSettings()
+    expect(s.soundAlerts.defaultSound).toBe('quack')
+    expect(s.soundAlerts.defaultVolume).toBe(0.8)
+  })
+
+  it('setSoundChannelEnabled creates and flips the channel entry', async () => {
+    await setSoundChannelEnabled('789012', true)
+    let s = await getSettings()
+    expect(s.soundAlerts.channels['789012']).toEqual({ enabled: true })
+    await setSoundChannelEnabled('789012', false)
+    s = await getSettings()
+    expect(s.soundAlerts.channels['789012'].enabled).toBe(false)
+  })
+
+  it('setSoundChannelSound sets and clears the per-channel sound', async () => {
+    await setSoundChannelEnabled('789012', true)
+    await setSoundChannelSound('789012', 'meet')
+    let s = await getSettings()
+    expect(s.soundAlerts.channels['789012']).toEqual({ enabled: true, sound: 'meet' })
+    await setSoundChannelSound('789012', undefined)
+    s = await getSettings()
+    expect(s.soundAlerts.channels['789012'].sound).toBeUndefined()
+    expect(s.soundAlerts.channels['789012'].enabled).toBe(true)
+  })
+
+  it('setSoundChannelVolume sets and clears the per-channel volume', async () => {
+    await setSoundChannelEnabled('789012', true)
+    await setSoundChannelVolume('789012', 0.25)
+    let s = await getSettings()
+    expect(s.soundAlerts.channels['789012'].volume).toBe(0.25)
+    await setSoundChannelVolume('789012', undefined)
+    s = await getSettings()
+    expect(s.soundAlerts.channels['789012'].volume).toBeUndefined()
+  })
+
+  it('removeSoundChannel deletes the entry', async () => {
+    await setSoundChannelEnabled('789012', true)
+    await removeSoundChannel('789012')
+    const s = await getSettings()
+    expect(s.soundAlerts.channels['789012']).toBeUndefined()
   })
 })

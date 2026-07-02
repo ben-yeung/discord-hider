@@ -1,4 +1,4 @@
-import type { ElementKey, ToolbarItemKey } from "../shared/types";
+import type { ElementKey, ToolbarItemKey, SoundId } from "../shared/types";
 
 export const ELEMENT_KEYS: readonly ElementKey[] = ["serverList", "channelColumn", "topToolbar", "chatBar"];
 
@@ -35,4 +35,13 @@ export const TOOLBAR_ITEM_SELECTORS: Record<ToolbarItemKey, string> = {
   pinnedMessages: '[aria-label="Pinned Messages"]',
   memberList: '[aria-label="Show Member List"]',
   searchBar: 'div[data-window-chrome="true"] div[class*="search__"]',
+};
+
+export const SOUND_IDS: readonly SoundId[] = ['ding', 'anime', 'meet', 'quack'];
+
+export const SOUND_LABELS: Record<SoundId, string> = {
+  ding: 'Ding',
+  anime: 'Anime',
+  meet: 'Meet',
+  quack: 'Quack',
 };
